@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CloudEye Platform</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- ── Sidebar ── -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="logo">
+        <span class="logo-mark">◈</span>
+        <span class="logo-text">CloudEye</span>
+      </div>
+      <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">☰</button>
+    </div>
+
+    <nav class="nav">
+      <a href="#services" class="nav-item active" data-section="services">
+        <span class="nav-icon">⬡</span>
+        <span class="nav-label">Service Monitor</span>
+      </a>
+      <a href="#logs" class="nav-item disabled" data-section="logs">
+        <span class="nav-icon">≡</span>
+        <span class="nav-label">Log Analyzer</span>
+        <span class="badge-soon">Phase 2</span>
+      </a>
+      <a href="#incidents" class="nav-item disabled" data-section="incidents">
+        <span class="nav-icon">△</span>
+        <span class="nav-label">Incidents</span>
+        <span class="badge-soon">Phase 3</span>
+      </a>
+      <a href="#health" class="nav-item disabled" data-section="health">
+        <span class="nav-icon">◎</span>
+        <span class="nav-label">System Health</span>
+        <span class="badge-soon">Phase 4</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="status-indicator" id="engineStatus">
+        <span class="dot dot--green"></span>
+        <span class="status-text">Engine running</span>
+      </div>
+      <div class="version">v0.1.0 — Phase 1</div>
+    </div>
+  </aside>
+
+  <!-- ── Main ── -->
+  <main class="main" id="main">
+
+    <!-- Top bar -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="mobile-menu-btn" id="mobileMenuBtn">☰</button>
+        <div class="breadcrumb">
+          <span class="breadcrumb-root">CloudEye</span>
+          <span class="breadcrumb-sep">/</span>
+          <span class="breadcrumb-current" id="breadcrumbCurrent">Service Monitor</span>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <div class="last-updated" id="lastUpdated">—</div>
+        <button class="btn btn--ghost btn--sm" id="checkAllBtn" title="Run checks now">
+          <span class="btn-icon">↻</span> Refresh
+        </button>
+      </div>
+    </header>
+
+    <!-- ── Section: Services ── -->
+    <section class="section" id="section-services">
+
+      <!-- Summary cards -->
+      <div class="summary-row">
+        <div class="stat-card">
+          <div class="stat-label">Total services</div>
+          <div class="stat-value" id="statTotal">—</div>
+        </div>
+        <div class="stat-card stat-card--up">
+          <div class="stat-label">Operational</div>
+          <div class="stat-value" id="statUp">—</div>
+        </div>
+        <div class="stat-card stat-card--down">
+          <div class="stat-label">Down</div>
+          <div class="stat-value" id="statDown">—</div>
+        </div>
+        <div class="stat-card stat-card--degraded">
+          <div class="stat-label">Degraded</div>
+          <div class="stat-value" id="statDegraded">—</div>
+        </div>
+      </div>
+
+      <!-- Services panel -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <span class="panel-title-label">Services</span>
+            <span class="panel-count" id="serviceCount">0</span>
+          </div>
+          <div class="panel-actions">
+            <div class="filter-group">
+              <button class="filter-btn active" data-filter="all">All</button>
+              <button class="filter-btn" data-filter="UP">Up</button>
+              <button class="filter-btn" data-filter="DOWN">Down</button>
+              <button class="filter-btn" data-filter="DEGRADED">Degraded</button>
+            </div>
+            <button class="btn btn--primary btn--sm" id="addServiceBtn">+ Add service</button>
+          </div>
+        </div>
+
+        <!-- Service table -->
+        <div class="table-wrap">
+          <table class="services-table" id="servicesTable">
+            <thead>
+              <tr>
+                <th>Service</th>
+                <th>Status</th>
+                <th>Response</th>
+                <th>Last checked</th>
+                <th>Type</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="servicesBody">
+              <tr class="table-loading">
+                <td colspan="6">Loading services…</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Uptime history (shown on row click) -->
+      <div class="panel history-panel" id="historyPanel" style="display:none">
+        <div class="panel-header">
+          <div class="panel-title">
+            <span class="panel-title-label" id="historyTitle">Check history</span>
+          </div>
+          <button class="btn btn--ghost btn--sm" id="closeHistoryBtn">✕ Close</button>
+        </div>
+        <div class="history-timeline" id="historyTimeline"></div>
+        <div class="table-wrap">
+          <table class="services-table" id="historyTable">
+            <thead>
+              <tr>
+                <th>Time</th>
+                <th>Status</th>
+                <th>Response (ms)</th>
+                <th>HTTP code</th>
+                <th>Error</th>
+              </tr>
+            </thead>
+            <tbody id="historyBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ── Placeholder sections for future phases ── -->
+    <section class="section section--placeholder" id="section-logs" style="display:none">
+      <div class="placeholder-card">
+        <div class="placeholder-icon">≡</div>
+        <div class="placeholder-title">Log Analyzer</div>
+        <div class="placeholder-desc">Upload and analyze logs to detect errors, warnings, and patterns. Coming in Phase 2.</div>
+      </div>
+    </section>
+    <section class="section section--placeholder" id="section-incidents" style="display:none">
+      <div class="placeholder-card">
+        <div class="placeholder-icon">△</div>
+        <div class="placeholder-title">Incident Tracker</div>
+        <div class="placeholder-desc">Auto-generated incidents from service failures. Coming in Phase 3.</div>
+      </div>
+    </section>
+    <section class="section section--placeholder" id="section-health" style="display:none">
+      <div class="placeholder-card">
+        <div class="placeholder-icon">◎</div>
+        <div class="placeholder-title">System Health</div>
+        <div class="placeholder-desc">Live CPU, memory, and disk metrics via psutil. Coming in Phase 4.</div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ── Modal: Add / Edit service ── -->
+  <div class="modal-overlay" id="modalOverlay" style="display:none">
+    <div class="modal" role="dialog" aria-modal="true">
+      <div class="modal-header">
+        <span class="modal-title" id="modalTitle">Add service</span>
+        <button class="modal-close" id="modalClose">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="field">
+          <label class="label" for="fieldName">Service name</label>
+          <input class="input" type="text" id="fieldName" placeholder="Auth API" autocomplete="off" />
+        </div>
+        <div class="field">
+          <label class="label" for="fieldUrl">URL</label>
+          <input class="input" type="url" id="fieldUrl" placeholder="https://api.example.com/health" autocomplete="off" />
+        </div>
+        <div class="field field--row">
+          <label class="label label--check">
+            <input type="checkbox" id="fieldMock" />
+            Use mock / simulated status
+          </label>
+        </div>
+        <div class="field" id="mockStatusField" style="display:none">
+          <label class="label" for="fieldMockStatus">Simulated status</label>
+          <select class="input" id="fieldMockStatus">
+            <option value="UP">UP</option>
+            <option value="DOWN">DOWN</option>
+            <option value="DEGRADED">DEGRADED</option>
+          </select>
+        </div>
+        <div class="modal-error" id="modalError" style="display:none"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn--ghost" id="modalCancelBtn">Cancel</button>
+        <button class="btn btn--primary" id="modalSaveBtn">Save service</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Delete confirm ── -->
+  <div class="modal-overlay" id="deleteOverlay" style="display:none">
+    <div class="modal modal--sm" role="dialog">
+      <div class="modal-header">
+        <span class="modal-title">Delete service</span>
+        <button class="modal-close" id="deleteClose">✕</button>
+      </div>
+      <div class="modal-body">
+        <p class="delete-msg">Remove <strong id="deleteServiceName"></strong>? This will also delete its check history.</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn--ghost" id="deleteCancelBtn">Cancel</button>
+        <button class="btn btn--danger" id="deleteConfirmBtn">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
