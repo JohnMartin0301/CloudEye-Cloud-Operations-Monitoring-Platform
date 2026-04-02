@@ -55,5 +55,25 @@ def init_db():
             default_services
         )
 
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS log_uploads (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            filename TEXT NOT NULL,
+            file_size_bytes INTEGER,
+            total_lines INTEGER,
+            parsed_lines INTEGER,
+            count_info INTEGER DEFAULT 0,
+            count_warning INTEGER DEFAULT 0,
+            count_error INTEGER DEFAULT 0,
+            count_debug INTEGER DEFAULT 0,
+            count_critical INTEGER DEFAULT 0,
+            most_frequent_issue TEXT,
+            time_range_from TEXT,
+            time_range_to TEXT,
+            result_json TEXT,
+            uploaded_at TEXT DEFAULT (datetime('now'))
+        )
+    """)
+
     conn.commit()
     conn.close()

@@ -12,34 +12,26 @@
   --surface-3:   #252a38;
   --border:      #2a2f3e;
   --border-2:    #333849;
-
   --text:        #d8dce8;
   --text-muted:  #7a8099;
   --text-dim:    #4a5068;
-
   --accent:      #0ea5e9;
   --accent-dim:  #0c4a6e;
   --accent-bg:   #020f1a;
-
   --amber:       #f0a500;
   --amber-dim:   #7a5200;
   --amber-bg:    #1e1600;
-
   --up:          #22c55e;
   --up-bg:       #0a2016;
   --up-border:   #143d22;
-
   --down:        #ef4444;
   --down-bg:     #200a0a;
   --down-border: #3d1414;
-
   --degraded:    #f59e0b;
   --degraded-bg: #1e1400;
   --degraded-border: #3d2800;
-
   --font-sans:   'IBM Plex Sans', system-ui, sans-serif;
   --font-mono:   'IBM Plex Mono', 'Courier New', monospace;
-
   --sidebar-w:   220px;
   --topbar-h:    52px;
   --radius:      4px;
@@ -803,4 +795,278 @@ select.input { cursor: pointer; }
   .svc-url { display: none; }
 
   .topbar { padding: 0 14px; }
+}
+
+/* ──────────────────────────────────────────────
+   Phase 2 — Log Analyzer
+────────────────────────────────────────────── */
+
+/* ─── Upload area ─── */
+.log-upload-area {
+  border: 1px dashed var(--border-2);
+  margin: 0 16px;
+  border-radius: var(--radius);
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.log-upload-area.drag-over {
+  border-color: var(--accent);
+  background: var(--accent-bg);
+}
+
+.log-upload-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 32px 20px;
+  text-align: center;
+}
+
+.upload-icon {
+  font-size: 24px;
+  color: var(--text-dim);
+  line-height: 1;
+}
+
+.upload-label {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.upload-label code {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  background: var(--surface-3);
+  border: 1px solid var(--border);
+  padding: 1px 5px;
+  border-radius: 2px;
+  color: var(--text);
+}
+
+.upload-sub {
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.upload-browse-btn { cursor: pointer; }
+
+.upload-meta {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--accent);
+  min-height: 16px;
+}
+
+.log-upload-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  border-top: 1px solid var(--border);
+}
+
+.upload-hint {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+/* ─── Log summary row ─── */
+.log-summary-row {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  border-bottom: 1px solid var(--border);
+}
+
+.log-stat {
+  padding: 14px 16px;
+  border-right: 1px solid var(--border);
+}
+
+.log-stat:last-child { border-right: none; }
+
+.log-stat-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-dim);
+  margin-bottom: 6px;
+}
+
+.log-stat-value {
+  font-family: var(--font-mono);
+  font-size: 22px;
+  font-weight: 500;
+  color: var(--text);
+  line-height: 1;
+}
+
+.log-stat--error    .log-stat-value { color: var(--down); }
+.log-stat--warning  .log-stat-value { color: var(--degraded); }
+.log-stat--info     .log-stat-value { color: var(--accent); }
+.log-stat--debug    .log-stat-value { color: var(--text-muted); }
+.log-stat--critical .log-stat-value { color: #c084fc; }
+
+/* ─── Meta row ─── */
+.log-meta-row {
+  display: flex;
+  gap: 24px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+
+.log-meta-item {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.log-meta-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--text-dim);
+}
+
+.log-meta-value {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text);
+}
+
+.log-meta-value--highlight {
+  color: var(--down);
+}
+
+/* ─── Top issues ─── */
+.log-issues-wrap {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.log-section-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-dim);
+  margin-bottom: 10px;
+}
+
+.log-issues-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.log-issue-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.log-issue-label {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-muted);
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.log-issue-bar-wrap {
+  width: 120px;
+  height: 4px;
+  background: var(--surface-3);
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.log-issue-bar {
+  height: 4px;
+  background: var(--down);
+  border-radius: 2px;
+  transition: width 0.4s ease;
+}
+
+.log-issue-count {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--down);
+  min-width: 28px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+/* ─── Log lines table ─── */
+.log-lines-wrap { }
+
+.log-lines-table td {
+  vertical-align: top;
+  font-size: 12px;
+}
+
+.log-lines-table td:nth-child(1) {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+
+.log-lines-table td:nth-child(3) {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+
+.log-lines-table td:nth-child(4) {
+  word-break: break-word;
+  max-width: 480px;
+}
+
+.log-level--ERROR    { color: var(--down); }
+.log-level--CRITICAL { color: #c084fc; }
+.log-level--WARNING  { color: var(--degraded); }
+
+/* ─── History table ─── */
+.log-history-filename {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text);
+}
+
+.log-history-time {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+/* ─── Responsive ─── */
+@media (max-width: 768px) {
+  .log-summary-row {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .log-stat:nth-child(4),
+  .log-stat:nth-child(5) {
+    border-top: 1px solid var(--border);
+  }
+}
+
+@media (max-width: 480px) {
+  .log-summary-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .log-lines-table th:nth-child(3),
+  .log-lines-table td:nth-child(3) {
+    display: none;
+  }
 }

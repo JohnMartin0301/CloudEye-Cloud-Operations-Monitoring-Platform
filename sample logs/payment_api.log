@@ -1,0 +1,51 @@
+2024-03-15 06:00:00,001 INFO payment.startup: Payment service initializing — version 1.9.3
+2024-03-15 06:00:00,312 INFO payment.db: Database pool initialized size=20 host=db-payments:5432
+2024-03-15 06:00:00,588 INFO payment.queue: Connected to RabbitMQ at mq-01:5672
+2024-03-15 06:00:01,001 INFO payment.startup: Payment service ready
+2024-03-15 06:01:44,220 INFO payment.transaction: TXN-00041 started amount=149.99 currency=USD method=credit_card user=u_10234
+2024-03-15 06:01:44,881 INFO payment.gateway: Stripe charge initiated charge_id=ch_3OxK2LGswygb txn=TXN-00041
+2024-03-15 06:01:45,441 INFO payment.transaction: TXN-00041 completed status=success charge_id=ch_3OxK2LGswygb
+2024-03-15 06:03:12,003 INFO payment.transaction: TXN-00042 started amount=89.00 currency=USD method=paypal user=u_20891
+2024-03-15 06:03:13,220 INFO payment.transaction: TXN-00042 completed status=success
+2024-03-15 06:05:33,441 INFO payment.transaction: TXN-00043 started amount=2499.00 currency=USD method=credit_card user=u_30012
+2024-03-15 06:05:33,992 WARNING payment.fraud: High-value transaction flagged for review txn=TXN-00043 amount=2499.00 user=u_30012
+2024-03-15 06:05:34,110 INFO payment.fraud: Transaction held pending manual review txn=TXN-00043
+2024-03-15 06:08:00,001 INFO payment.transaction: TXN-00044 started amount=34.50 currency=USD method=credit_card user=u_11092
+2024-03-15 06:08:01,330 ERROR payment.gateway: Stripe API timeout after 5000ms txn=TXN-00044 attempt=1
+2024-03-15 06:08:06,441 ERROR payment.gateway: Stripe API timeout after 5000ms txn=TXN-00044 attempt=2
+2024-03-15 06:08:11,550 ERROR payment.gateway: Stripe API timeout after 5000ms txn=TXN-00044 attempt=3
+2024-03-15 06:08:11,551 ERROR payment.transaction: TXN-00044 failed after 3 attempts — marking as failed user=u_11092 amount=34.50
+2024-03-15 06:08:11,560 WARNING payment.gateway: Stripe API degraded — elevated timeout rate threshold=10% current=34%
+2024-03-15 06:10:22,003 INFO payment.transaction: TXN-00045 started amount=12.00 currency=USD method=credit_card user=u_44321
+2024-03-15 06:10:22,881 ERROR payment.gateway: Card declined reason=insufficient_funds txn=TXN-00045 user=u_44321
+2024-03-15 06:10:22,882 INFO payment.transaction: TXN-00045 completed status=declined
+2024-03-15 06:15:00,001 INFO payment.healthcheck: Health check passed db_latency=8ms queue_depth=0
+2024-03-15 06:20:33,441 INFO payment.transaction: TXN-00046 started amount=199.99 currency=EUR method=credit_card user=u_55210
+2024-03-15 06:20:34,001 INFO payment.transaction: TXN-00046 completed status=success
+2024-03-15 06:30:00,001 INFO payment.healthcheck: Health check passed db_latency=9ms queue_depth=2
+2024-03-15 07:00:00,001 INFO payment.healthcheck: Health check passed db_latency=7ms queue_depth=0
+2024-03-15 07:15:44,221 ERROR payment.db: Database connection timeout after 30s host=db-payments:5432 pool_size=20 active=20
+2024-03-15 07:15:44,330 ERROR payment.db: Database connection timeout after 30s host=db-payments:5432 pool_size=20 active=20
+2024-03-15 07:15:44,441 ERROR payment.db: Database connection pool exhausted — all 20 connections in use
+2024-03-15 07:15:44,442 CRITICAL payment.db: Cannot process transactions — database unavailable
+2024-03-15 07:15:44,550 WARNING payment.queue: Queuing incoming transactions for retry queue_depth=14
+2024-03-15 07:16:10,001 INFO payment.db: Database connections restored pool_available=18
+2024-03-15 07:16:11,220 INFO payment.queue: Processing queued transactions count=14
+2024-03-15 07:16:45,881 INFO payment.queue: Queue drained successfully
+2024-03-15 08:00:00,001 INFO payment.healthcheck: Health check passed db_latency=8ms queue_depth=0
+2024-03-15 08:30:12,003 INFO payment.transaction: TXN-00081 started amount=549.00 currency=USD method=bank_transfer user=u_78901
+2024-03-15 08:30:13,110 INFO payment.transaction: TXN-00081 completed status=pending_bank_confirmation
+2024-03-15 09:00:00,001 INFO payment.healthcheck: Health check passed db_latency=6ms queue_depth=0
+2024-03-15 09:45:33,441 WARNING payment.compliance: PCI-DSS audit log rotation triggered — archiving logs older than 90 days
+2024-03-15 10:00:00,001 INFO payment.healthcheck: Health check passed db_latency=7ms queue_depth=0
+2024-03-15 10:22:14,003 ERROR payment.webhook: Webhook delivery failed url=https://merchant.acme.com/webhooks txn=TXN-00046 attempt=1 status=503
+2024-03-15 10:22:44,112 ERROR payment.webhook: Webhook delivery failed url=https://merchant.acme.com/webhooks txn=TXN-00046 attempt=2 status=503
+2024-03-15 10:23:14,220 ERROR payment.webhook: Webhook delivery failed url=https://merchant.acme.com/webhooks txn=TXN-00046 attempt=3 status=503
+2024-03-15 10:23:14,221 WARNING payment.webhook: Webhook marked as failed after 3 attempts txn=TXN-00046 — manual retry required
+2024-03-15 11:00:00,001 INFO payment.healthcheck: Health check passed db_latency=8ms queue_depth=0
+2024-03-15 11:30:55,881 ERROR payment.ssl: SSL certificate verification failed host=api.stripe.com reason=certificate_expired
+2024-03-15 11:30:55,882 CRITICAL payment.gateway: Payment gateway unreachable — SSL handshake failed host=api.stripe.com
+2024-03-15 11:30:56,003 ERROR payment.transaction: TXN-00112 failed — gateway unavailable user=u_90112 amount=299.00
+2024-03-15 11:31:00,441 INFO payment.gateway: SSL certificate updated — gateway connection restored
+2024-03-15 11:31:01,003 INFO payment.transaction: TXN-00112 retried successfully
+2024-03-15 12:00:00,001 INFO payment.healthcheck: Health check passed db_latency=9ms queue_depth=0

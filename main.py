@@ -1,19 +1,18 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, UploadFile, File
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from apscheduler.schedulers.background import BackgroundScheduler
 from contextlib import asynccontextmanager
 import os
+import json
 
 from database import init_db, get_connection
 from monitor import run_all_checks, check_service
+from log_parser import parse_logs
 
 
-# ──────────────────────────────────────────────
 # Pydantic schemas
-# ──────────────────────────────────────────────
-
 class ServiceCreate(BaseModel):
     name: str
     url: str
@@ -28,10 +27,7 @@ class ServiceUpdate(BaseModel):
     mock_status: str | None = None
 
 
-# ──────────────────────────────────────────────
 # App lifecycle
-# ──────────────────────────────────────────────
-
 scheduler = BackgroundScheduler()
 
 
@@ -48,10 +44,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="CloudEye Platform", lifespan=lifespan)
 
 
-# ──────────────────────────────────────────────
 # Static files + SPA root
-# ──────────────────────────────────────────────
-
 STATIC_DIR = os.path.join(os.path.dirname(__file__), "static")
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
@@ -61,10 +54,7 @@ def root():
     return FileResponse(os.path.join(STATIC_DIR, "index.html"))
 
 
-# ──────────────────────────────────────────────
 # Services CRUD
-# ──────────────────────────────────────────────
-
 @app.get("/api/services")
 def list_services():
     conn = get_connection()
@@ -161,10 +151,7 @@ def delete_service(service_id: int):
     return {"message": "Service deleted"}
 
 
-# ──────────────────────────────────────────────
 # Manual trigger + history
-# ──────────────────────────────────────────────
-
 @app.post("/api/services/{service_id}/check")
 def manual_check(service_id: int):
     conn = get_connection()
@@ -200,10 +187,7 @@ def service_history(service_id: int, limit: int = 20):
     return [dict(r) for r in rows]
 
 
-# ──────────────────────────────────────────────
 # Summary stats
-# ──────────────────────────────────────────────
-
 @app.get("/api/summary")
 def summary():
     conn = get_connection()
@@ -233,3 +217,91 @@ def summary():
         "degraded": degrad,
         "unknown": unknown,
     }
+
+# Log Analyzer endpoints
+@app.post("/api/logs/analyze")
+async def analyze_log(file: UploadFile = File(...)):
+    MAX_SIZE = 10 * 1024 * 1024  # 10 MB
+    raw = await file.read()
+    if len(raw) > MAX_SIZE:
+        raise HTTPException(status_code=413, detail="File too large. Max 10 MB.")
+
+    try:
+        content = raw.decode("utf-8", errors="replace")
+    except Exception:
+        raise HTTPException(status_code=400, detail="Could not decode file. Upload a plain text log file.")
+
+    result = parse_logs(content)
+
+    conn = get_connection()
+    cur = conn.execute(
+        """
+        INSERT INTO log_uploads (
+            filename, file_size_bytes, total_lines, parsed_lines,
+            count_info, count_warning, count_error, count_debug, count_critical,
+            most_frequent_issue, time_range_from, time_range_to, result_json
+        ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)
+        """,
+        (
+            file.filename or "upload.log",
+            len(raw),
+            result["total_lines"],
+            result["parsed_lines"],
+            result["counts"]["INFO"],
+            result["counts"]["WARNING"],
+            result["counts"]["ERROR"],
+            result["counts"]["DEBUG"],
+            result["counts"]["CRITICAL"],
+            result["most_frequent_issue"],
+            result["time_range"]["from"],
+            result["time_range"]["to"],
+            json.dumps(result),
+        ),
+    )
+    upload_id = cur.lastrowid
+    conn.commit()
+    conn.close()
+
+    return {"upload_id": upload_id, **result}
+
+
+@app.get("/api/logs/history")
+def log_history(limit: int = 20):
+    conn = get_connection()
+    rows = conn.execute(
+        """
+        SELECT id, filename, file_size_bytes, total_lines, parsed_lines,
+               count_info, count_warning, count_error, count_debug, count_critical,
+               most_frequent_issue, time_range_from, time_range_to, uploaded_at
+        FROM log_uploads
+        ORDER BY id DESC LIMIT ?
+        """,
+        (limit,),
+    ).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+
+@app.get("/api/logs/{upload_id}")
+def get_log_result(upload_id: int):
+    conn = get_connection()
+    row = conn.execute(
+        "SELECT result_json FROM log_uploads WHERE id=?", (upload_id,)
+    ).fetchone()
+    conn.close()
+    if not row:
+        raise HTTPException(status_code=404, detail="Upload not found")
+    return json.loads(row["result_json"])
+
+
+@app.delete("/api/logs/{upload_id}")
+def delete_log(upload_id: int):
+    conn = get_connection()
+    row = conn.execute("SELECT id FROM log_uploads WHERE id=?", (upload_id,)).fetchone()
+    if not row:
+        conn.close()
+        raise HTTPException(status_code=404, detail="Upload not found")
+    conn.execute("DELETE FROM log_uploads WHERE id=?", (upload_id,))
+    conn.commit()
+    conn.close()
+    return {"message": "Deleted"}

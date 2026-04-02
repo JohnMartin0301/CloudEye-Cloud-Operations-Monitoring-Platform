@@ -1,0 +1,60 @@
+2024-03-15 00:01:12,001 INFO auth.startup: Auth service starting up — version 2.4.1
+2024-03-15 00:01:12,210 INFO auth.db: Connected to PostgreSQL at db-primary:5432
+2024-03-15 00:01:12,450 INFO auth.cache: Redis connection established at cache-01:6379
+2024-03-15 00:01:13,001 INFO auth.server: Listening on 0.0.0.0:8080
+2024-03-15 00:03:44,112 INFO auth.request: POST /api/auth/login user=john.smith@acme.com ip=192.168.1.45
+2024-03-15 00:03:44,380 INFO auth.token: JWT issued for user=john.smith@acme.com exp=3600s
+2024-03-15 00:05:01,772 INFO auth.request: POST /api/auth/login user=jane.doe@acme.com ip=192.168.1.88
+2024-03-15 00:05:01,990 INFO auth.token: JWT issued for user=jane.doe@acme.com exp=3600s
+2024-03-15 00:12:33,441 WARNING auth.ratelimit: Rate limit threshold reached for ip=203.0.113.42 attempts=8
+2024-03-15 00:12:34,002 WARNING auth.ratelimit: Rate limit threshold reached for ip=203.0.113.42 attempts=9
+2024-03-15 00:12:34,561 ERROR auth.ratelimit: IP blocked due to excessive login attempts ip=203.0.113.42 attempts=10
+2024-03-15 00:15:22,003 INFO auth.request: POST /api/auth/login user=admin@acme.com ip=10.0.0.5
+2024-03-15 00:15:22,210 ERROR auth.authentication: Authentication failed for user=admin@acme.com reason=invalid_password ip=10.0.0.5
+2024-03-15 00:15:45,881 ERROR auth.authentication: Authentication failed for user=admin@acme.com reason=invalid_password ip=10.0.0.5
+2024-03-15 00:16:10,334 ERROR auth.authentication: Authentication failed for user=admin@acme.com reason=invalid_password ip=10.0.0.5
+2024-03-15 00:16:10,340 WARNING auth.security: Multiple failed login attempts detected user=admin@acme.com locking account for 300s
+2024-03-15 00:22:05,772 INFO auth.request: POST /api/auth/refresh token_id=tk_9f3a2c ip=192.168.1.45
+2024-03-15 00:22:05,900 INFO auth.token: Token refreshed successfully token_id=tk_9f3a2c
+2024-03-15 00:30:11,003 INFO auth.request: POST /api/auth/logout user=john.smith@acme.com
+2024-03-15 00:30:11,120 INFO auth.token: Token revoked token_id=tk_9f3a2c
+2024-03-15 01:00:00,001 INFO auth.maintenance: Starting scheduled token cleanup
+2024-03-15 01:00:00,881 INFO auth.maintenance: Expired tokens purged count=142
+2024-03-15 01:15:33,441 ERROR auth.db: Database connection timeout after 30s host=db-primary:5432
+2024-03-15 01:15:33,442 ERROR auth.db: Database connection timeout after 30s host=db-primary:5432
+2024-03-15 01:15:34,001 ERROR auth.db: Database connection timeout after 30s host=db-primary:5432
+2024-03-15 01:15:34,120 WARNING auth.db: Attempting failover to db-replica:5432
+2024-03-15 01:15:34,880 INFO auth.db: Failover successful — connected to db-replica:5432
+2024-03-15 01:15:35,001 INFO auth.server: Resuming normal operation after DB failover
+2024-03-15 02:00:01,003 INFO auth.healthcheck: Health check passed latency=12ms
+2024-03-15 02:30:44,221 ERROR auth.token: JWT validation failed reason=signature_mismatch token_id=tk_invalid_8821
+2024-03-15 02:30:44,222 WARNING auth.security: Possible token tampering detected ip=198.51.100.14
+2024-03-15 03:00:01,003 INFO auth.healthcheck: Health check passed latency=14ms
+2024-03-15 03:45:12,550 INFO auth.request: POST /api/auth/login user=mary.jones@acme.com ip=192.168.2.10
+2024-03-15 03:45:12,780 INFO auth.token: JWT issued for user=mary.jones@acme.com exp=3600s
+2024-03-15 04:00:01,003 INFO auth.healthcheck: Health check passed latency=11ms
+2024-03-15 04:12:33,881 ERROR auth.cache: Redis connection refused host=cache-01:6379
+2024-03-15 04:12:34,001 ERROR auth.cache: Redis connection refused host=cache-01:6379
+2024-03-15 04:12:34,110 WARNING auth.cache: Falling back to in-memory cache — performance may degrade
+2024-03-15 04:13:01,440 INFO auth.cache: Redis reconnected host=cache-01:6379
+2024-03-15 05:00:01,003 INFO auth.healthcheck: Health check passed latency=13ms
+2024-03-15 06:00:01,003 INFO auth.healthcheck: Health check passed latency=10ms
+2024-03-15 06:14:22,771 INFO auth.request: POST /api/auth/login user=david.park@acme.com ip=192.168.3.55
+2024-03-15 06:14:22,990 INFO auth.token: JWT issued for user=david.park@acme.com exp=3600s
+2024-03-15 07:00:01,003 INFO auth.healthcheck: Health check passed latency=9ms
+2024-03-15 07:30:00,441 INFO auth.maintenance: Starting scheduled token cleanup
+2024-03-15 07:30:00,990 INFO auth.maintenance: Expired tokens purged count=87
+2024-03-15 08:00:01,003 INFO auth.healthcheck: Health check passed latency=11ms
+2024-03-15 08:45:19,221 WARNING auth.ssl: SSL certificate for auth.acme.com expires in 14 days
+2024-03-15 09:00:01,003 INFO auth.healthcheck: Health check passed latency=12ms
+2024-03-15 09:22:44,112 ERROR auth.db: Database connection timeout after 30s host=db-replica:5432
+2024-03-15 09:22:44,300 ERROR auth.db: Database connection timeout after 30s host=db-replica:5432
+2024-03-15 09:22:45,001 INFO auth.db: Reconnected to db-primary:5432
+2024-03-15 10:00:01,003 INFO auth.healthcheck: Health check passed latency=10ms
+2024-03-15 10:33:55,881 INFO auth.request: POST /api/auth/login user=sarah.chen@acme.com ip=10.0.1.22
+2024-03-15 10:33:56,001 INFO auth.token: JWT issued for user=sarah.chen@acme.com exp=3600s
+2024-03-15 11:00:01,003 INFO auth.healthcheck: Health check passed latency=13ms
+2024-03-15 11:48:03,440 CRITICAL auth.security: Brute force attack detected — 500 requests in 60s ip=185.220.101.5 blocking at firewall level
+2024-03-15 11:48:03,441 ERROR auth.security: Emergency rate limit applied ip=185.220.101.5
+2024-03-15 11:48:03,550 WARNING auth.server: High request volume detected — queue depth=842
+2024-03-15 12:00:01,003 INFO auth.healthcheck: Health check passed latency=18ms

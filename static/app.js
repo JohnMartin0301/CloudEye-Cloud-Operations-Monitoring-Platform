@@ -379,3 +379,282 @@ function startPolling() {
   await loadServices();
   startPolling();
 })();
+
+
+/* ──────────────────────────────────────────────
+   Phase 2 — Log Analyzer
+────────────────────────────────────────────── */
+
+const logState = {
+  file:          null,
+  result:        null,
+  lineFilter:    "ERROR",
+};
+
+// ── DOM refs ────────────────────────────────────
+const logDropZone      = $("logDropZone");
+const logFileInput     = $("logFileInput");
+const uploadMeta       = $("uploadMeta");
+const analyzeBtn       = $("analyzeBtn");
+const logResultPanel   = $("logResultPanel");
+const logSummaryRow    = $("logSummaryRow");
+const logMetaRow       = $("logMetaRow");
+const logIssuesWrap    = $("logIssuesWrap");
+const logIssuesList    = $("logIssuesList");
+const logLinesWrap     = $("logLinesWrap");
+const logLinesBody     = $("logLinesBody");
+const errorLineCount   = $("errorLineCount");
+const resultFilename   = $("resultFilename");
+const logHistoryBody   = $("logHistoryBody");
+
+// ── File selection ──────────────────────────────
+function setLogFile(file) {
+  if (!file) return;
+  if (file.size > 10 * 1024 * 1024) {
+    uploadMeta.textContent = "File too large — max 10 MB.";
+    uploadMeta.style.color = "var(--down)";
+    analyzeBtn.disabled = true;
+    return;
+  }
+  logState.file = file;
+  const kb = (file.size / 1024).toFixed(1);
+  uploadMeta.textContent = `${file.name}  (${kb} KB)`;
+  uploadMeta.style.color = "var(--accent)";
+  analyzeBtn.disabled = false;
+}
+
+logFileInput.addEventListener("change", () => {
+  if (logFileInput.files[0]) setLogFile(logFileInput.files[0]);
+});
+
+// Drag & drop
+logDropZone.addEventListener("dragover", e => {
+  e.preventDefault();
+  logDropZone.classList.add("drag-over");
+});
+logDropZone.addEventListener("dragleave", () => logDropZone.classList.remove("drag-over"));
+logDropZone.addEventListener("drop", e => {
+  e.preventDefault();
+  logDropZone.classList.remove("drag-over");
+  const file = e.dataTransfer.files[0];
+  if (file) setLogFile(file);
+});
+
+// ── Analyze ─────────────────────────────────────
+analyzeBtn.addEventListener("click", async () => {
+  if (!logState.file) return;
+
+  analyzeBtn.disabled = true;
+  analyzeBtn.textContent = "Analyzing…";
+
+  const formData = new FormData();
+  formData.append("file", logState.file);
+
+  try {
+    const res = await fetch("/api/logs/analyze", { method: "POST", body: formData });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ detail: "Upload failed" }));
+      throw new Error(err.detail);
+    }
+    const result = await res.json();
+    logState.result = result;
+    renderLogResult(result, logState.file.name);
+    loadLogHistory();
+  } catch (e) {
+    uploadMeta.textContent = `Error: ${e.message}`;
+    uploadMeta.style.color = "var(--down)";
+  } finally {
+    analyzeBtn.disabled = false;
+    analyzeBtn.textContent = "Analyze";
+  }
+});
+
+// ── Render result ───────────────────────────────
+function renderLogResult(r, filename) {
+  resultFilename.textContent = filename;
+
+  // Summary stats
+  logSummaryRow.innerHTML = `
+    <div class="log-stat log-stat--error">
+      <div class="log-stat-label">Errors</div>
+      <div class="log-stat-value">${r.counts.ERROR}</div>
+    </div>
+    <div class="log-stat log-stat--critical">
+      <div class="log-stat-label">Critical</div>
+      <div class="log-stat-value">${r.counts.CRITICAL}</div>
+    </div>
+    <div class="log-stat log-stat--warning">
+      <div class="log-stat-label">Warnings</div>
+      <div class="log-stat-value">${r.counts.WARNING}</div>
+    </div>
+    <div class="log-stat log-stat--info">
+      <div class="log-stat-label">Info</div>
+      <div class="log-stat-value">${r.counts.INFO}</div>
+    </div>
+    <div class="log-stat log-stat--debug">
+      <div class="log-stat-label">Debug</div>
+      <div class="log-stat-value">${r.counts.DEBUG}</div>
+    </div>`;
+
+  // Meta row
+  const from = r.time_range?.from
+    ? new Date(r.time_range.from).toLocaleString()
+    : "—";
+  const to = r.time_range?.to
+    ? new Date(r.time_range.to).toLocaleString()
+    : "—";
+
+  logMetaRow.innerHTML = `
+    <div class="log-meta-item">
+      <div class="log-meta-label">Total lines</div>
+      <div class="log-meta-value">${r.total_lines.toLocaleString()}</div>
+    </div>
+    <div class="log-meta-item">
+      <div class="log-meta-label">Parsed</div>
+      <div class="log-meta-value">${r.parsed_lines.toLocaleString()}</div>
+    </div>
+    <div class="log-meta-item">
+      <div class="log-meta-label">Time range from</div>
+      <div class="log-meta-value">${from}</div>
+    </div>
+    <div class="log-meta-item">
+      <div class="log-meta-label">To</div>
+      <div class="log-meta-value">${to}</div>
+    </div>
+    ${r.most_frequent_issue ? `
+    <div class="log-meta-item">
+      <div class="log-meta-label">Most frequent issue</div>
+      <div class="log-meta-value log-meta-value--highlight">${escHtml(r.most_frequent_issue)}</div>
+    </div>` : ""}`;
+
+  // Top issues
+  if (r.top_issues?.length) {
+    const maxCount = r.top_issues[0].count;
+    logIssuesList.innerHTML = r.top_issues.map(issue => {
+      const pct = maxCount > 0 ? Math.round((issue.count / maxCount) * 100) : 0;
+      return `
+        <div class="log-issue-row">
+          <div class="log-issue-label" title="${escHtml(issue.issue)}">${escHtml(issue.issue)}</div>
+          <div class="log-issue-bar-wrap">
+            <div class="log-issue-bar" style="width:${pct}%"></div>
+          </div>
+          <div class="log-issue-count">${issue.count}</div>
+        </div>`;
+    }).join("");
+    logIssuesWrap.style.display = "";
+  } else {
+    logIssuesWrap.style.display = "none";
+  }
+
+  // Error lines (default view)
+  logState.lineFilter = "ERROR";
+  document.querySelectorAll("#lineFilter .filter-btn").forEach(b => {
+    b.classList.toggle("active", b.dataset.lf === "ERROR");
+  });
+  renderLogLines(r);
+
+  logResultPanel.style.display = "";
+  logResultPanel.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function renderLogLines(r) {
+  const lines = logState.lineFilter === "ERROR"
+    ? (r.error_lines   || [])
+    : (r.warning_lines || []);
+
+  errorLineCount.textContent = lines.length;
+
+  if (!lines.length) {
+    logLinesBody.innerHTML = `<tr class="table-loading"><td colspan="4">No ${logState.lineFilter.toLowerCase()} lines found.</td></tr>`;
+    logLinesWrap.style.display = "";
+    return;
+  }
+
+  logLinesBody.innerHTML = lines.map(l => `
+    <tr>
+      <td>${escHtml(l.timestamp)}</td>
+      <td><span class="status-badge log-level--${l.level}" style="font-size:10px;padding:2px 6px">${l.level}</span></td>
+      <td>${escHtml(l.logger || "—")}</td>
+      <td>${escHtml(l.message)}</td>
+    </tr>`).join("");
+
+  logLinesWrap.style.display = "";
+}
+
+// Line filter toggle
+document.querySelectorAll("#lineFilter .filter-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll("#lineFilter .filter-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    logState.lineFilter = btn.dataset.lf;
+    if (logState.result) renderLogLines(logState.result);
+  });
+});
+
+// Clear result
+$("clearResultBtn").addEventListener("click", () => {
+  logResultPanel.style.display = "none";
+  logState.result = null;
+  logState.file = null;
+  logFileInput.value = "";
+  uploadMeta.textContent = "";
+  analyzeBtn.disabled = true;
+});
+
+// ── Upload history ───────────────────────────────
+async function loadLogHistory() {
+  try {
+    const rows = await api("/api/logs/history?limit=15");
+    if (!rows.length) {
+      logHistoryBody.innerHTML = `<tr class="table-loading"><td colspan="7">No uploads yet.</td></tr>`;
+      return;
+    }
+    logHistoryBody.innerHTML = rows.map(r => `
+      <tr>
+        <td><div class="log-history-filename">${escHtml(r.filename)}</div></td>
+        <td><div class="log-history-time">${r.uploaded_at}</div></td>
+        <td style="font-family:var(--font-mono);font-size:12px">${r.total_lines?.toLocaleString() ?? "—"}</td>
+        <td style="font-family:var(--font-mono);font-size:12px;color:var(--down)">${r.count_error ?? 0}</td>
+        <td style="font-family:var(--font-mono);font-size:12px;color:var(--degraded)">${r.count_warning ?? 0}</td>
+        <td style="font-family:var(--font-mono);font-size:12px;color:var(--text-muted);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(r.most_frequent_issue ?? "—")}</td>
+        <td>
+          <div class="row-actions">
+            <button class="action-btn" onclick="loadHistoryResult(${r.id}, '${escHtml(r.filename)}')">View</button>
+            <button class="action-btn action-btn--danger" onclick="deleteLogUpload(${r.id})">Del</button>
+          </div>
+        </td>
+      </tr>`).join("");
+  } catch (e) {
+    logHistoryBody.innerHTML = `<tr class="table-loading"><td colspan="7" style="color:var(--down)">Failed to load history.</td></tr>`;
+  }
+}
+
+window.loadHistoryResult = async function(id, filename) {
+  try {
+    const result = await api(`/api/logs/${id}`);
+    logState.result = result;
+    renderLogResult(result, filename);
+  } catch (e) { console.error(e); }
+};
+
+window.deleteLogUpload = async function(id) {
+  try {
+    await api(`/api/logs/${id}`, { method: "DELETE" });
+    loadLogHistory();
+    if (logState.result?.upload_id === id) {
+      logResultPanel.style.display = "none";
+      logState.result = null;
+    }
+  } catch (e) { console.error(e); }
+};
+
+$("refreshHistoryBtn").addEventListener("click", loadLogHistory);
+
+// Load history when Log Analyzer tab is opened
+document.querySelectorAll(".nav-item").forEach(item => {
+  item.addEventListener("click", () => {
+    if (item.dataset.section === "logs") {
+      loadLogHistory();
+    }
+  });
+});

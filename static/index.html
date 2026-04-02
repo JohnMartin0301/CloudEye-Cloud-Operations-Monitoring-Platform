@@ -25,10 +25,9 @@
         <span class="nav-icon">⬡</span>
         <span class="nav-label">Service Monitor</span>
       </a>
-      <a href="#logs" class="nav-item disabled" data-section="logs">
+      <a href="#logs" class="nav-item" data-section="logs">
         <span class="nav-icon">≡</span>
         <span class="nav-label">Log Analyzer</span>
-        <span class="badge-soon">Phase 2</span>
       </a>
       <a href="#incidents" class="nav-item disabled" data-section="incidents">
         <span class="nav-icon">△</span>
@@ -163,12 +162,113 @@
     </section>
 
     <!-- ── Placeholder sections for future phases ── -->
-    <section class="section section--placeholder" id="section-logs" style="display:none">
-      <div class="placeholder-card">
-        <div class="placeholder-icon">≡</div>
-        <div class="placeholder-title">Log Analyzer</div>
-        <div class="placeholder-desc">Upload and analyze logs to detect errors, warnings, and patterns. Coming in Phase 2.</div>
+
+    <!-- ── Section: Log Analyzer ── -->
+    <section class="section" id="section-logs" style="display:none">
+
+      <!-- Upload panel -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <span class="panel-title-label">Upload log file</span>
+          </div>
+        </div>
+        <div class="log-upload-area" id="logDropZone">
+          <div class="log-upload-inner">
+            <div class="upload-icon">⬆</div>
+            <div class="upload-label">Drop a <code>.log</code> or <code>.txt</code> file here</div>
+            <div class="upload-sub">or</div>
+            <label class="btn btn--ghost btn--sm upload-browse-btn">
+              Browse file
+              <input type="file" id="logFileInput" accept=".log,.txt,text/plain" style="display:none" />
+            </label>
+            <div class="upload-meta" id="uploadMeta"></div>
+          </div>
+        </div>
+        <div class="log-upload-footer">
+          <span class="upload-hint">Python logging format — max 10 MB</span>
+          <button class="btn btn--primary btn--sm" id="analyzeBtn" disabled>Analyze</button>
+        </div>
       </div>
+
+      <!-- Results panel (hidden until analysis runs) -->
+      <div class="panel" id="logResultPanel" style="display:none">
+        <div class="panel-header">
+          <div class="panel-title">
+            <span class="panel-title-label">Analysis result</span>
+            <span class="panel-count" id="resultFilename"></span>
+          </div>
+          <button class="btn btn--ghost btn--sm" id="clearResultBtn">✕ Clear</button>
+        </div>
+
+        <!-- Summary stats row -->
+        <div class="log-summary-row" id="logSummaryRow"></div>
+
+        <!-- Time range + most frequent -->
+        <div class="log-meta-row" id="logMetaRow"></div>
+
+        <!-- Top issues -->
+        <div class="log-issues-wrap" id="logIssuesWrap" style="display:none">
+          <div class="log-section-label">Top issues</div>
+          <div class="log-issues-list" id="logIssuesList"></div>
+        </div>
+
+        <!-- Error lines -->
+        <div class="log-lines-wrap" id="logLinesWrap" style="display:none">
+          <div class="panel-header" style="border-top:1px solid var(--border);border-bottom:none;padding-top:12px">
+            <div class="panel-title">
+              <span class="panel-title-label">Error lines</span>
+              <span class="panel-count" id="errorLineCount">0</span>
+            </div>
+            <div class="filter-group" id="lineFilter">
+              <button class="filter-btn active" data-lf="ERROR">Errors</button>
+              <button class="filter-btn" data-lf="WARNING">Warnings</button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table class="services-table log-lines-table">
+              <thead>
+                <tr>
+                  <th>Timestamp</th>
+                  <th>Level</th>
+                  <th>Logger</th>
+                  <th>Message</th>
+                </tr>
+              </thead>
+              <tbody id="logLinesBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Upload history panel -->
+      <div class="panel" id="logHistoryPanel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <span class="panel-title-label">Upload history</span>
+          </div>
+          <button class="btn btn--ghost btn--sm" id="refreshHistoryBtn">↻ Refresh</button>
+        </div>
+        <div class="table-wrap">
+          <table class="services-table">
+            <thead>
+              <tr>
+                <th>File</th>
+                <th>Uploaded</th>
+                <th>Lines</th>
+                <th>Errors</th>
+                <th>Warnings</th>
+                <th>Top issue</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="logHistoryBody">
+              <tr class="table-loading"><td colspan="7">No uploads yet.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
     </section>
     <section class="section section--placeholder" id="section-incidents" style="display:none">
       <div class="placeholder-card">
