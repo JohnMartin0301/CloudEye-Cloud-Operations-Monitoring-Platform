@@ -75,5 +75,35 @@ def init_db():
         )
     """)
 
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS incidents (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            incident_number TEXT NOT NULL UNIQUE,
+            service_id INTEGER NOT NULL,
+            service_name TEXT NOT NULL,
+            title TEXT NOT NULL,
+            description TEXT,
+            severity TEXT NOT NULL DEFAULT 'Medium',
+            status TEXT NOT NULL DEFAULT 'Open',
+            trigger_error TEXT,
+            detected_at TEXT DEFAULT (datetime('now')),
+            acknowledged_at TEXT,
+            resolved_at TEXT,
+            auto_resolved INTEGER DEFAULT 0,
+            FOREIGN KEY (service_id) REFERENCES services(id)
+        )
+    """)
+
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS incident_timeline (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            incident_id INTEGER NOT NULL,
+            event TEXT NOT NULL,
+            note TEXT,
+            created_at TEXT DEFAULT (datetime('now')),
+            FOREIGN KEY (incident_id) REFERENCES incidents(id)
+        )
+    """)
+
     conn.commit()
     conn.close()

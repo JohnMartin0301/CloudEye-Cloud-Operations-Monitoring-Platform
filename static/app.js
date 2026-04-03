@@ -3,7 +3,7 @@
    Phase 1: Service Monitor
 ───────────────────────────────────────────── */
 
-// ── State ──────────────────────────────────────
+// ── State ──
 const state = {
   services:        [],
   filter:          "all",
@@ -15,7 +15,7 @@ const state = {
 
 const POLL_INTERVAL_MS = 30_000; // match backend scheduler
 
-// ── DOM refs ───────────────────────────────────
+// ── DOM refs ──
 const $ = id => document.getElementById(id);
 const servicesBody   = $("servicesBody");
 const historyPanel   = $("historyPanel");
@@ -28,7 +28,7 @@ const modalError     = $("modalError");
 const checkAllBtn    = $("checkAllBtn");
 const lastUpdated    = $("lastUpdated");
 
-// ── API helpers ────────────────────────────────
+// ── API helpers ──
 async function api(path, options = {}) {
   const res = await fetch(path, {
     headers: { "Content-Type": "application/json" },
@@ -41,7 +41,7 @@ async function api(path, options = {}) {
   return res.json();
 }
 
-// ── Formatters ─────────────────────────────────
+// ── Formatters ──
 function fmtTime(isoStr) {
   if (!isoStr) return "—";
   try {
@@ -69,7 +69,7 @@ function nowStr() {
   });
 }
 
-// ── Render ─────────────────────────────────────
+// ── Render ──
 function renderSummary(services) {
   const total    = services.length;
   const up       = services.filter(s => s.current_status === "UP").length;
@@ -137,7 +137,7 @@ function escHtml(s) {
     .replace(/"/g, "&quot;");
 }
 
-// ── Data loading ───────────────────────────────
+// ── Data loading ──
 async function loadServices() {
   try {
     const [services] = await Promise.all([api("/api/services")]);
@@ -189,7 +189,7 @@ async function loadHistory(serviceId) {
   }
 }
 
-// ── Check all / manual ping ────────────────────
+// ── Check all / manual ping ──
 checkAllBtn.addEventListener("click", async () => {
   const icon = checkAllBtn.querySelector(".btn-icon");
   icon.classList.add("spinning");
@@ -213,7 +213,7 @@ window.pingService = async function(id) {
   } catch (e) { console.error(e); }
 };
 
-// ── Filters ────────────────────────────────────
+// ── Filters ──
 document.querySelectorAll(".filter-btn").forEach(btn => {
   btn.addEventListener("click", () => {
     document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
@@ -223,13 +223,13 @@ document.querySelectorAll(".filter-btn").forEach(btn => {
   });
 });
 
-// ── History panel close ────────────────────────
+// ── History panel close ──
 $("closeHistoryBtn").addEventListener("click", () => {
   historyPanel.style.display = "none";
   state.activeHistoryId = null;
 });
 
-// ── Add/Edit modal ─────────────────────────────
+// ── Add/Edit modal ──
 function openModal(svc = null) {
   state.editingId = svc ? svc.id : null;
   $("modalTitle").textContent = svc ? "Edit service" : "Add service";
@@ -296,7 +296,7 @@ function showModalError(msg) {
   modalError.style.display = "block";
 }
 
-// ── Delete modal ───────────────────────────────
+// ── Delete modal ──
 window.openDelete = function(id, name) {
   state.deletingId = id;
   $("deleteServiceName").textContent = name;
@@ -327,7 +327,7 @@ $("deleteConfirmBtn").addEventListener("click", async () => {
   }
 });
 
-// ── Sidebar navigation ─────────────────────────
+// ── Sidebar navigation ──
 document.querySelectorAll(".nav-item:not(.disabled)").forEach(item => {
   item.addEventListener("click", e => {
     e.preventDefault();
@@ -342,7 +342,7 @@ document.querySelectorAll(".nav-item:not(.disabled)").forEach(item => {
   });
 });
 
-// ── Mobile sidebar toggle ──────────────────────
+// ── Mobile sidebar toggle ──
 const mobileMenuBtn = $("mobileMenuBtn");
 const sidebar = $("sidebar");
 
@@ -356,7 +356,7 @@ document.addEventListener("click", e => {
   }
 });
 
-// ── Keyboard shortcuts ─────────────────────────
+// ── Keyboard shortcuts ──
 document.addEventListener("keydown", e => {
   if (e.key === "Escape") {
     closeModal();
@@ -364,7 +364,7 @@ document.addEventListener("keydown", e => {
   }
 });
 
-// ── Auto-polling ───────────────────────────────
+// ── Auto-polling ──
 function startPolling() {
   state.polling = setInterval(async () => {
     await loadServices();
@@ -374,7 +374,7 @@ function startPolling() {
   }, POLL_INTERVAL_MS);
 }
 
-// ── Init ───────────────────────────────────────
+// ── Init ──
 (async function init() {
   await loadServices();
   startPolling();
@@ -391,7 +391,7 @@ const logState = {
   lineFilter:    "ERROR",
 };
 
-// ── DOM refs ────────────────────────────────────
+// ── DOM refs ──
 const logDropZone      = $("logDropZone");
 const logFileInput     = $("logFileInput");
 const uploadMeta       = $("uploadMeta");
@@ -407,7 +407,7 @@ const errorLineCount   = $("errorLineCount");
 const resultFilename   = $("resultFilename");
 const logHistoryBody   = $("logHistoryBody");
 
-// ── File selection ──────────────────────────────
+// ── File selection ──
 function setLogFile(file) {
   if (!file) return;
   if (file.size > 10 * 1024 * 1024) {
@@ -440,7 +440,7 @@ logDropZone.addEventListener("drop", e => {
   if (file) setLogFile(file);
 });
 
-// ── Analyze ─────────────────────────────────────
+// ── Analyze ──
 analyzeBtn.addEventListener("click", async () => {
   if (!logState.file) return;
 
@@ -469,7 +469,7 @@ analyzeBtn.addEventListener("click", async () => {
   }
 });
 
-// ── Render result ───────────────────────────────
+// ── Render result ──
 function renderLogResult(r, filename) {
   resultFilename.textContent = filename;
 
@@ -601,7 +601,7 @@ $("clearResultBtn").addEventListener("click", () => {
   analyzeBtn.disabled = true;
 });
 
-// ── Upload history ───────────────────────────────
+// ── Upload history ──
 async function loadLogHistory() {
   try {
     const rows = await api("/api/logs/history?limit=15");
@@ -658,3 +658,313 @@ document.querySelectorAll(".nav-item").forEach(item => {
     }
   });
 });
+
+
+/* ──────────────────────────────────────────────
+   Phase 3 — Incident Tracker
+────────────────────────────────────────────── */
+
+const incState = {
+  incidents:     [],
+  filter:        "all",
+  activeId:      null,
+};
+
+// ── DOM refs ──
+const incidentsBody      = $("incidentsBody");
+const incidentDetailPanel= $("incidentDetailPanel");
+const incidentBadge      = $("incidentBadge");
+const incidentCount      = $("incidentCount");
+
+// ── Formatters ──
+function severityBadge(s) {
+  return `<span class="severity-badge severity-badge--${s}">${s}</span>`;
+}
+
+function incStatusBadge(s) {
+  return `<span class="inc-status-badge inc-status-badge--${s}"><span class="dot"></span>${s}</span>`;
+}
+
+function fmtDatetime(iso) {
+  if (!iso) return "—";
+  try {
+    return new Date(iso + (iso.includes("T") ? "" : " ") + (iso.includes("Z") ? "" : "")).toLocaleString([], {
+      month: "short", day: "numeric",
+      hour: "2-digit", minute: "2-digit"
+    });
+  } catch { return iso; }
+}
+
+function timelineDotClass(event) {
+  const e = event.toLowerCase();
+  if (e.includes("opened"))      return "timeline-dot--open";
+  if (e.includes("acknowledged")) return "timeline-dot--ack";
+  if (e.includes("resolved"))    return "timeline-dot--closed";
+  return "timeline-dot--note";
+}
+
+// ── Load incidents ──
+async function loadIncidents() {
+  try {
+    const [incidents, summary] = await Promise.all([
+      api("/api/incidents?limit=100"),
+      api("/api/incidents/summary"),
+    ]);
+    incState.incidents = incidents;
+
+    // Summary cards
+    $("incStatTotal").textContent    = summary.total;
+    $("incStatOpen").textContent     = summary.Open;
+    $("incStatAck").textContent      = summary.Acknowledged;
+    $("incStatResolved").textContent = summary.Resolved;
+
+    // Nav badge
+    if (summary.Open > 0) {
+      incidentBadge.textContent    = summary.Open;
+      incidentBadge.style.display  = "";
+    } else {
+      incidentBadge.style.display  = "none";
+    }
+
+    renderIncidents();
+  } catch (e) {
+    incidentsBody.innerHTML = `<tr class="table-loading"><td colspan="7" style="color:var(--down)">Failed to load incidents.</td></tr>`;
+  }
+}
+
+function renderIncidents() {
+  const filtered = incState.filter === "all"
+    ? incState.incidents
+    : incState.incidents.filter(i => i.status === incState.filter);
+
+  incidentCount.textContent = filtered.length;
+
+  if (!filtered.length) {
+    incidentsBody.innerHTML = `<tr class="table-loading"><td colspan="7">No incidents match this filter.</td></tr>`;
+    return;
+  }
+
+  incidentsBody.innerHTML = filtered.map(inc => {
+    const autoTag = inc.auto_resolved
+      ? `<span class="auto-tag">auto</span>`
+      : "";
+    return `
+      <tr data-inc-id="${inc.id}" style="cursor:pointer">
+        <td>
+          <div class="inc-number">${escHtml(inc.incident_number)}</div>
+          <div class="inc-title">${escHtml(inc.title)}</div>
+        </td>
+        <td style="font-size:13px">${escHtml(inc.service_name)}</td>
+        <td>${severityBadge(inc.severity)}</td>
+        <td>${incStatusBadge(inc.status)}</td>
+        <td style="font-family:var(--font-mono);font-size:11px;color:var(--text-muted)">${fmtDatetime(inc.detected_at)}</td>
+        <td style="font-family:var(--font-mono);font-size:11px;color:var(--text-muted)">${fmtDatetime(inc.resolved_at)}${autoTag}</td>
+        <td>
+          <div class="row-actions" onclick="event.stopPropagation()">
+            <button class="action-btn action-btn--danger" onclick="deleteIncident(${inc.id})">Del</button>
+          </div>
+        </td>
+      </tr>`;
+  }).join("");
+
+  // Row click → detail
+  incidentsBody.querySelectorAll("tr[data-inc-id]").forEach(row => {
+    row.addEventListener("click", () => loadIncidentDetail(parseInt(row.dataset.incId)));
+  });
+}
+
+// ── Incident detail ──
+async function loadIncidentDetail(id) {
+  incState.activeId = id;
+  incidentDetailPanel.style.display = "";
+
+  try {
+    const inc = await api(`/api/incidents/${id}`);
+    $("detailNumber").textContent = inc.incident_number;
+    $("detailTitle").textContent  = inc.title;
+
+    // Meta
+    $("incidentMeta").innerHTML = `
+      <div class="incident-meta-item">
+        <div class="incident-meta-label">Status</div>
+        <div class="incident-meta-value">${incStatusBadge(inc.status)}</div>
+      </div>
+      <div class="incident-meta-item">
+        <div class="incident-meta-label">Severity</div>
+        <div class="incident-meta-value">${severityBadge(inc.severity)}</div>
+      </div>
+      <div class="incident-meta-item">
+        <div class="incident-meta-label">Service</div>
+        <div class="incident-meta-value">${escHtml(inc.service_name)}</div>
+      </div>
+      <div class="incident-meta-item">
+        <div class="incident-meta-label">Detected</div>
+        <div class="incident-meta-value">${fmtDatetime(inc.detected_at)}</div>
+      </div>
+      ${inc.acknowledged_at ? `
+      <div class="incident-meta-item">
+        <div class="incident-meta-label">Acknowledged</div>
+        <div class="incident-meta-value">${fmtDatetime(inc.acknowledged_at)}</div>
+      </div>` : ""}
+      ${inc.resolved_at ? `
+      <div class="incident-meta-item">
+        <div class="incident-meta-label">Resolved</div>
+        <div class="incident-meta-value">${fmtDatetime(inc.resolved_at)}</div>
+      </div>` : ""}
+      ${inc.trigger_error ? `
+      <div class="incident-meta-item">
+        <div class="incident-meta-label">Trigger</div>
+        <div class="incident-meta-value" style="color:var(--down)">${escHtml(inc.trigger_error)}</div>
+      </div>` : ""}`;
+
+    // Action buttons
+    const actions = $("incidentActions");
+    actions.innerHTML = "";
+    if (inc.status === "Open") {
+      actions.innerHTML += `<button class="btn btn--ghost btn--sm" onclick="updateIncidentStatus(${inc.id}, 'Acknowledged')">Acknowledge</button>`;
+      actions.innerHTML += `<button class="btn btn--primary btn--sm" onclick="updateIncidentStatus(${inc.id}, 'Resolved')">Resolve</button>`;
+    } else if (inc.status === "Acknowledged") {
+      actions.innerHTML += `<button class="btn btn--primary btn--sm" onclick="updateIncidentStatus(${inc.id}, 'Resolved')">Resolve</button>`;
+    } else if (inc.status === "Resolved") {
+      actions.innerHTML += `<button class="btn btn--ghost btn--sm" onclick="updateIncidentStatus(${inc.id}, 'Open')">Reopen</button>`;
+    }
+
+    // Timeline
+    const timeline = $("incidentTimeline");
+    if (!inc.timeline?.length) {
+      timeline.innerHTML = `<div style="color:var(--text-dim);font-size:12px;padding:8px 0">No timeline entries.</div>`;
+    } else {
+      timeline.innerHTML = inc.timeline.map(entry => `
+        <div class="timeline-entry">
+          <div class="timeline-dot-wrap">
+            <div class="timeline-dot ${timelineDotClass(entry.event)}"></div>
+            <div class="timeline-line"></div>
+          </div>
+          <div class="timeline-content">
+            <div class="timeline-event">${escHtml(entry.event)}</div>
+            ${entry.note ? `<div class="timeline-note">${escHtml(entry.note)}</div>` : ""}
+            <div class="timeline-time">${fmtDatetime(entry.created_at)}</div>
+          </div>
+        </div>`).join("");
+    }
+
+    incidentDetailPanel.scrollIntoView({ behavior: "smooth", block: "start" });
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+window.updateIncidentStatus = async function(id, status) {
+  try {
+    await api(`/api/incidents/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify({ status }),
+    });
+    await loadIncidents();
+    await loadIncidentDetail(id);
+  } catch (e) { console.error(e); }
+};
+
+window.deleteIncident = async function(id) {
+  try {
+    await api(`/api/incidents/${id}`, { method: "DELETE" });
+    if (incState.activeId === id) {
+      incidentDetailPanel.style.display = "none";
+      incState.activeId = null;
+    }
+    await loadIncidents();
+  } catch (e) { console.error(e); }
+};
+
+$("closeDetailBtn").addEventListener("click", () => {
+  incidentDetailPanel.style.display = "none";
+  incState.activeId = null;
+});
+
+// ── Incident filter ──
+document.querySelectorAll("[data-if]").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll("[data-if]").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    incState.filter = btn.dataset.if;
+    renderIncidents();
+  });
+});
+
+// ── Create incident modal ──
+const incidentModalOverlay = $("incidentModalOverlay");
+
+async function openCreateIncidentModal() {
+  // Populate service dropdown
+  const select = $("incFieldService");
+  select.innerHTML = state.services.map(s =>
+    `<option value="${s.id}">${escHtml(s.name)}</option>`
+  ).join("");
+  $("incFieldTitle").value    = "";
+  $("incFieldDesc").value     = "";
+  $("incFieldSeverity").value = "Medium";
+  $("incModalError").style.display = "none";
+  incidentModalOverlay.style.display = "flex";
+  $("incFieldTitle").focus();
+}
+
+$("createIncidentBtn").addEventListener("click", openCreateIncidentModal);
+
+function closeIncidentModal() {
+  incidentModalOverlay.style.display = "none";
+}
+
+$("incidentModalClose").addEventListener("click", closeIncidentModal);
+$("incModalCancelBtn").addEventListener("click", closeIncidentModal);
+incidentModalOverlay.addEventListener("click", e => {
+  if (e.target === incidentModalOverlay) closeIncidentModal();
+});
+
+$("incModalSaveBtn").addEventListener("click", async () => {
+  const service_id  = parseInt($("incFieldService").value);
+  const title       = $("incFieldTitle").value.trim();
+  const description = $("incFieldDesc").value.trim();
+  const severity    = $("incFieldSeverity").value;
+
+  if (!title) {
+    $("incModalError").textContent = "Title is required.";
+    $("incModalError").style.display = "block";
+    return;
+  }
+
+  try {
+    await api("/api/incidents", {
+      method: "POST",
+      body: JSON.stringify({ service_id, title, description, severity }),
+    });
+    closeIncidentModal();
+    await loadIncidents();
+  } catch (e) {
+    $("incModalError").textContent = e.message;
+    $("incModalError").style.display = "block";
+  }
+});
+
+// ── Load on tab open + polling ──
+document.querySelectorAll(".nav-item").forEach(item => {
+  item.addEventListener("click", () => {
+    if (item.dataset.section === "incidents") {
+      loadIncidents();
+    }
+  });
+});
+
+// Also load incident badge count on every service poll
+const _origLoadServices = loadServices;
+loadServices = async function() {
+  await _origLoadServices();
+  try {
+    const summary = await api("/api/incidents/summary");
+    if (summary.Open > 0) {
+      incidentBadge.textContent   = summary.Open;
+      incidentBadge.style.display = "";
+    } else {
+      incidentBadge.style.display = "none";
+    }
+  } catch (_) {}
+};

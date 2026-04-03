@@ -99,6 +99,79 @@ def save_check_result(result: dict):
     conn.close()
 
 
+def get_severity(status: str, error_message) -> str:
+    if status == "DOWN":
+        if error_message and "timed out" in error_message.lower():
+            return "High"
+        return "Critical"
+    if status == "DEGRADED":
+        return "Medium"
+    return "Low"
+
+
+def generate_incident_number(conn) -> str:
+    row = conn.execute("SELECT COUNT(*) FROM incidents").fetchone()
+    count = row[0] + 1
+    return f"INC-{count:04d}"
+
+
+def handle_incidents(result: dict, service: dict):
+    service_id   = result["service_id"]
+    status       = result["status"]
+    error_msg    = result["error_message"]
+    service_name = service["name"]
+
+    conn = get_connection()
+
+    open_incident = conn.execute(
+        """
+        SELECT id, incident_number, status FROM incidents
+        WHERE service_id = ? AND status != 'Resolved'
+        ORDER BY id DESC LIMIT 1
+        """,
+        (service_id,),
+    ).fetchone()
+
+    if status in ("DOWN", "DEGRADED"):
+        if not open_incident:
+            severity        = get_severity(status, error_msg)
+            incident_number = generate_incident_number(conn)
+            title           = f"{service_name} is {status}"
+            description     = f"Automated detection: {service_name} returned status {status}."
+            if error_msg:
+                description += f" Error: {error_msg}"
+
+            cur = conn.execute(
+                """
+                INSERT INTO incidents
+                    (incident_number, service_id, service_name, title, description,
+                     severity, status, trigger_error)
+                VALUES (?, ?, ?, ?, ?, ?, 'Open', ?)
+                """,
+                (incident_number, service_id, service_name, title,
+                 description, severity, error_msg),
+            )
+            incident_id = cur.lastrowid
+            conn.execute(
+                "INSERT INTO incident_timeline (incident_id, event, note) VALUES (?, 'Incident opened', ?)",
+                (incident_id, f"Auto-detected: {service_name} is {status}. {error_msg or ''}"),
+            )
+            conn.commit()
+
+    elif status == "UP" and open_incident:
+        conn.execute(
+            "UPDATE incidents SET status='Resolved', resolved_at=datetime('now'), auto_resolved=1 WHERE id=?",
+            (open_incident["id"],),
+        )
+        conn.execute(
+            "INSERT INTO incident_timeline (incident_id, event, note) VALUES (?, 'Incident resolved', ?)",
+            (open_incident["id"], f"Auto-resolved: {service_name} recovered and is now UP."),
+        )
+        conn.commit()
+
+    conn.close()
+
+
 def run_all_checks():
     """Called by the scheduler every N seconds."""
     conn = get_connection()
@@ -106,5 +179,7 @@ def run_all_checks():
     conn.close()
 
     for svc in services:
-        result = check_service(dict(svc))
+        svc_dict = dict(svc)
+        result = check_service(svc_dict)
         save_check_result(result)
+        handle_incidents(result, svc_dict)
