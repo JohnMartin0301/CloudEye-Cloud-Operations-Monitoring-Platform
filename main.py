@@ -6,10 +6,12 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from contextlib import asynccontextmanager
 import os
 import json
+import threading
 
 from database import init_db, get_connection
 from monitor import run_all_checks, check_service
 from log_parser import parse_logs
+from metrics import run_metrics_collection, collect_metrics
 
 
 # Pydantic schemas
@@ -34,8 +36,10 @@ scheduler = BackgroundScheduler()
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     init_db()
-    run_all_checks()                              # immediate first poll
+    threading.Thread(target=run_all_checks, daemon=True).start()                            
+    threading.Thread(target=run_metrics_collection, daemon=True).start()                    
     scheduler.add_job(run_all_checks, "interval", seconds=30, id="monitor")
+    scheduler.add_job(run_metrics_collection, "interval", seconds=30, id="metrics")
     scheduler.start()
     yield
     scheduler.shutdown()
@@ -315,7 +319,6 @@ class IncidentUpdate(BaseModel):
     severity: str | None = None
     note: str | None = None
 
-
 class IncidentCreate(BaseModel):
     service_id: int
     title: str
@@ -491,3 +494,42 @@ def delete_incident(incident_id: int):
     conn.commit()
     conn.close()
     return {"message": "Incident deleted"}
+
+
+# System Health endpoints
+@app.get("/api/health/current")
+def health_current():
+    """Return the latest metrics snapshot."""
+    conn = get_connection()
+    row = conn.execute(
+        "SELECT * FROM system_metrics ORDER BY id DESC LIMIT 1"
+    ).fetchone()
+    conn.close()
+    if not row:
+        # If no saved snapshot yet, collect live
+        return collect_metrics()
+    return dict(row)
+ 
+ 
+@app.get("/api/health/history")
+def health_history(limit: int = 60):
+    """Return last N snapshots for sparkline charts (default 60 = 30 min)."""
+    conn = get_connection()
+    rows = conn.execute(
+        """
+        SELECT cpu_percent, memory_percent, disk_percent,
+               net_bytes_sent_mb, net_bytes_recv_mb, recorded_at
+        FROM system_metrics
+        ORDER BY id DESC LIMIT ?
+        """,
+        (limit,),
+    ).fetchall()
+    conn.close()
+    # Reverse so oldest is first (left to right on chart)
+    return [dict(r) for r in reversed(rows)]
+ 
+ 
+@app.get("/api/health/live")
+def health_live():
+    """Collect and return a fresh live reading (not saved to DB)."""
+    return collect_metrics()

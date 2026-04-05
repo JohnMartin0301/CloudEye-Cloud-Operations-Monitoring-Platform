@@ -3,7 +3,7 @@
    Phase 1: Service Monitor
 ───────────────────────────────────────────── */
 
-// ── State ──
+// ── State ──────────────────────────────────────
 const state = {
   services:        [],
   filter:          "all",
@@ -15,7 +15,7 @@ const state = {
 
 const POLL_INTERVAL_MS = 30_000; // match backend scheduler
 
-// ── DOM refs ──
+// ── DOM refs ───────────────────────────────────
 const $ = id => document.getElementById(id);
 const servicesBody   = $("servicesBody");
 const historyPanel   = $("historyPanel");
@@ -28,7 +28,7 @@ const modalError     = $("modalError");
 const checkAllBtn    = $("checkAllBtn");
 const lastUpdated    = $("lastUpdated");
 
-// ── API helpers ──
+// ── API helpers ────────────────────────────────
 async function api(path, options = {}) {
   const res = await fetch(path, {
     headers: { "Content-Type": "application/json" },
@@ -41,7 +41,7 @@ async function api(path, options = {}) {
   return res.json();
 }
 
-// ── Formatters ──
+// ── Formatters ─────────────────────────────────
 function fmtTime(isoStr) {
   if (!isoStr) return "—";
   try {
@@ -69,7 +69,7 @@ function nowStr() {
   });
 }
 
-// ── Render ──
+// ── Render ─────────────────────────────────────
 function renderSummary(services) {
   const total    = services.length;
   const up       = services.filter(s => s.current_status === "UP").length;
@@ -137,7 +137,7 @@ function escHtml(s) {
     .replace(/"/g, "&quot;");
 }
 
-// ── Data loading ──
+// ── Data loading ───────────────────────────────
 async function loadServices() {
   try {
     const [services] = await Promise.all([api("/api/services")]);
@@ -189,15 +189,20 @@ async function loadHistory(serviceId) {
   }
 }
 
-// ── Check all / manual ping ──
+// ── Check all / manual ping ────────────────────
 checkAllBtn.addEventListener("click", async () => {
   const icon = checkAllBtn.querySelector(".btn-icon");
   icon.classList.add("spinning");
   checkAllBtn.disabled = true;
   try {
-    await api("/api/check-all", { method: "POST" });
-    await loadServices();
-    if (state.activeHistoryId) await loadHistory(state.activeHistoryId);
+    const activeSection = document.querySelector(".nav-item.active")?.dataset.section;
+    if (activeSection === "health") {
+      await loadHealth();
+    } else {
+      await api("/api/check-all", { method: "POST" });
+      await loadServices();
+      if (state.activeHistoryId) await loadHistory(state.activeHistoryId);
+    }
   } catch (e) {
     console.error(e);
   } finally {
@@ -213,7 +218,7 @@ window.pingService = async function(id) {
   } catch (e) { console.error(e); }
 };
 
-// ── Filters ──
+// ── Filters ────────────────────────────────────
 document.querySelectorAll(".filter-btn").forEach(btn => {
   btn.addEventListener("click", () => {
     document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
@@ -223,13 +228,13 @@ document.querySelectorAll(".filter-btn").forEach(btn => {
   });
 });
 
-// ── History panel close ──
+// ── History panel close ────────────────────────
 $("closeHistoryBtn").addEventListener("click", () => {
   historyPanel.style.display = "none";
   state.activeHistoryId = null;
 });
 
-// ── Add/Edit modal ──
+// ── Add/Edit modal ─────────────────────────────
 function openModal(svc = null) {
   state.editingId = svc ? svc.id : null;
   $("modalTitle").textContent = svc ? "Edit service" : "Add service";
@@ -296,7 +301,7 @@ function showModalError(msg) {
   modalError.style.display = "block";
 }
 
-// ── Delete modal ──
+// ── Delete modal ───────────────────────────────
 window.openDelete = function(id, name) {
   state.deletingId = id;
   $("deleteServiceName").textContent = name;
@@ -327,7 +332,7 @@ $("deleteConfirmBtn").addEventListener("click", async () => {
   }
 });
 
-// ── Sidebar navigation ──
+// ── Sidebar navigation ─────────────────────────
 document.querySelectorAll(".nav-item:not(.disabled)").forEach(item => {
   item.addEventListener("click", e => {
     e.preventDefault();
@@ -342,7 +347,7 @@ document.querySelectorAll(".nav-item:not(.disabled)").forEach(item => {
   });
 });
 
-// ── Mobile sidebar toggle ──
+// ── Mobile sidebar toggle ──────────────────────
 const mobileMenuBtn = $("mobileMenuBtn");
 const sidebar = $("sidebar");
 
@@ -356,7 +361,7 @@ document.addEventListener("click", e => {
   }
 });
 
-// ── Keyboard shortcuts ──
+// ── Keyboard shortcuts ─────────────────────────
 document.addEventListener("keydown", e => {
   if (e.key === "Escape") {
     closeModal();
@@ -364,7 +369,7 @@ document.addEventListener("keydown", e => {
   }
 });
 
-// ── Auto-polling ──
+// ── Auto-polling ───────────────────────────────
 function startPolling() {
   state.polling = setInterval(async () => {
     await loadServices();
@@ -374,7 +379,7 @@ function startPolling() {
   }, POLL_INTERVAL_MS);
 }
 
-// ── Init ──
+// ── Init ───────────────────────────────────────
 (async function init() {
   await loadServices();
   startPolling();
@@ -391,7 +396,7 @@ const logState = {
   lineFilter:    "ERROR",
 };
 
-// ── DOM refs ──
+// ── DOM refs ────────────────────────────────────
 const logDropZone      = $("logDropZone");
 const logFileInput     = $("logFileInput");
 const uploadMeta       = $("uploadMeta");
@@ -407,7 +412,7 @@ const errorLineCount   = $("errorLineCount");
 const resultFilename   = $("resultFilename");
 const logHistoryBody   = $("logHistoryBody");
 
-// ── File selection ──
+// ── File selection ──────────────────────────────
 function setLogFile(file) {
   if (!file) return;
   if (file.size > 10 * 1024 * 1024) {
@@ -440,7 +445,7 @@ logDropZone.addEventListener("drop", e => {
   if (file) setLogFile(file);
 });
 
-// ── Analyze ──
+// ── Analyze ─────────────────────────────────────
 analyzeBtn.addEventListener("click", async () => {
   if (!logState.file) return;
 
@@ -469,7 +474,7 @@ analyzeBtn.addEventListener("click", async () => {
   }
 });
 
-// ── Render result ──
+// ── Render result ───────────────────────────────
 function renderLogResult(r, filename) {
   resultFilename.textContent = filename;
 
@@ -601,7 +606,7 @@ $("clearResultBtn").addEventListener("click", () => {
   analyzeBtn.disabled = true;
 });
 
-// ── Upload history ──
+// ── Upload history ───────────────────────────────
 async function loadLogHistory() {
   try {
     const rows = await api("/api/logs/history?limit=15");
@@ -670,13 +675,13 @@ const incState = {
   activeId:      null,
 };
 
-// ── DOM refs ──
+// ── DOM refs ────────────────────────────────────
 const incidentsBody      = $("incidentsBody");
 const incidentDetailPanel= $("incidentDetailPanel");
 const incidentBadge      = $("incidentBadge");
 const incidentCount      = $("incidentCount");
 
-// ── Formatters ──
+// ── Formatters ──────────────────────────────────
 function severityBadge(s) {
   return `<span class="severity-badge severity-badge--${s}">${s}</span>`;
 }
@@ -703,7 +708,7 @@ function timelineDotClass(event) {
   return "timeline-dot--note";
 }
 
-// ── Load incidents ──
+// ── Load incidents ───────────────────────────────
 async function loadIncidents() {
   try {
     const [incidents, summary] = await Promise.all([
@@ -773,7 +778,7 @@ function renderIncidents() {
   });
 }
 
-// ── Incident detail ──
+// ── Incident detail ──────────────────────────────
 async function loadIncidentDetail(id) {
   incState.activeId = id;
   incidentDetailPanel.style.display = "";
@@ -881,7 +886,7 @@ $("closeDetailBtn").addEventListener("click", () => {
   incState.activeId = null;
 });
 
-// ── Incident filter ──
+// ── Incident filter ──────────────────────────────
 document.querySelectorAll("[data-if]").forEach(btn => {
   btn.addEventListener("click", () => {
     document.querySelectorAll("[data-if]").forEach(b => b.classList.remove("active"));
@@ -891,7 +896,7 @@ document.querySelectorAll("[data-if]").forEach(btn => {
   });
 });
 
-// ── Create incident modal ──
+// ── Create incident modal ────────────────────────
 const incidentModalOverlay = $("incidentModalOverlay");
 
 async function openCreateIncidentModal() {
@@ -945,7 +950,7 @@ $("incModalSaveBtn").addEventListener("click", async () => {
   }
 });
 
-// ── Load on tab open + polling ──
+// ── Load on tab open + polling ───────────────────
 document.querySelectorAll(".nav-item").forEach(item => {
   item.addEventListener("click", () => {
     if (item.dataset.section === "incidents") {
@@ -968,3 +973,285 @@ loadServices = async function() {
     }
   } catch (_) {}
 };
+
+
+/* ──────────────────────────────────────────────
+   Phase 4 — System Health Dashboard
+────────────────────────────────────────────── */
+
+const healthCharts = {};
+
+// ── Chart defaults ───────────────────────────────
+function makeGradient(ctx, color) {
+  const gradient = ctx.createLinearGradient(0, 0, 0, 200);
+  gradient.addColorStop(0, color + "55");
+  gradient.addColorStop(1, color + "00");
+  return gradient;
+}
+
+function buildChartConfig(label, color, data, labels) {
+  return {
+    type: "line",
+    data: {
+      labels,
+      datasets: [{
+        label,
+        data,
+        borderColor:     color,
+        backgroundColor: color + "22",
+        borderWidth:     1.5,
+        pointRadius:     0,
+        pointHoverRadius:4,
+        pointHoverBackgroundColor: color,
+        tension:         0.4,
+        fill:            true,
+      }]
+    },
+    options: {
+      responsive:          true,
+      maintainAspectRatio: false,
+      animation: {
+        duration: 600,
+        easing:   "easeInOutQuart",
+      },
+      transitions: {
+        active: { animation: { duration: 200 } },
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          mode:            "index",
+          intersect:       false,
+          backgroundColor: "rgba(15,17,23,0.9)",
+          borderColor:     color,
+          borderWidth:     1,
+          titleColor:      "#7a8099",
+          bodyColor:       "#d8dce8",
+          padding:         8,
+          callbacks: {
+            label: ctx => ` ${ctx.parsed.y.toFixed(1)}`,
+          }
+        }
+      },
+      scales: {
+        x: { display: false },
+        y: {
+          min:    0,
+          max:    100,
+          display: true,
+          position: "left",
+          grid:   { color: "rgba(255,255,255,0.03)", drawBorder: false },
+          border: { display: false },
+          ticks: {
+            color:         "#4a5068",
+            font:          { family: "'IBM Plex Mono'", size: 9 },
+            maxTicksLimit: 4,
+            callback:      v => v + "%",
+            padding:       4,
+          }
+        }
+      }
+    }
+  };
+}
+
+function buildNetChartConfig(label, color, data, labels) {
+  const cfg = buildChartConfig(label, color, data, labels);
+  cfg.options.scales.y.max = undefined;
+  cfg.options.scales.y.ticks.callback = v => v.toFixed(0) + " MB";
+  return cfg;
+}
+
+// ── Init charts ──────────────────────────────────
+function initHealthCharts() {
+  if (healthCharts.cpu) {
+    Object.values(healthCharts).forEach(c => c.destroy());
+    Object.keys(healthCharts).forEach(k => delete healthCharts[k]);
+  }
+
+  Chart.defaults.font.family = "'IBM Plex Mono', monospace";
+
+  healthCharts.cpu  = new Chart($("chartCpu"),  buildChartConfig("CPU %",         "#0ea5e9", [], []));
+  healthCharts.mem  = new Chart($("chartMem"),  buildChartConfig("Mem %",         "#22c55e", [], []));
+  healthCharts.disk = new Chart($("chartDisk"), buildChartConfig("Disk %",        "#f59e0b", [], []));
+  healthCharts.net  = new Chart($("chartNet"),  buildNetChartConfig("Net sent MB","#a78bfa", [], []));
+}
+
+// ── Update bar ───────────────────────────────────
+function updateBar(barEl, cardEl, pct, warnAt = 80, dangerAt = 90) {
+  barEl.style.width = Math.min(pct, 100) + "%";
+  barEl.classList.remove("health-bar--warn", "health-bar--danger");
+  if (pct >= dangerAt) {
+    barEl.classList.add("health-bar--danger");
+  } else if (pct >= warnAt) {
+    barEl.classList.add("health-bar--warn");
+  }
+}
+
+function fmtMB(mb) {
+  if (mb >= 1024) return (mb / 1024).toFixed(1) + " GB";
+  return mb.toFixed(0) + " MB";
+}
+
+// ── Badge helper ─────────────────────────────────
+function updateTileBadge(badgeEl, tileEl, pct, warnAt, dangerAt) {
+  badgeEl.className = "health-tile-badge";
+  tileEl.classList.remove("tile--warn", "tile--danger");
+  if (pct >= dangerAt) {
+    badgeEl.textContent = "CRITICAL";
+    badgeEl.classList.add("health-tile-badge--danger");
+    tileEl.classList.add("tile--danger");
+  } else if (pct >= warnAt) {
+    badgeEl.textContent = "HIGH";
+    badgeEl.classList.add("health-tile-badge--warn");
+    tileEl.classList.add("tile--warn");
+  } else if (pct >= 50) {
+    badgeEl.textContent = "MODERATE";
+    badgeEl.classList.add("health-tile-badge--ok");
+  } else {
+    badgeEl.textContent = "NORMAL";
+    badgeEl.classList.add("health-tile-badge--ok");
+  }
+}
+
+function updateOverallStatus(cpuPct, memPct, diskPct) {
+  const dot   = $("hOverallDot");
+  const label = $("hOverallLabel");
+  dot.className = "health-overall-dot";
+  if (cpuPct >= 90 || memPct >= 90 || diskPct >= 90) {
+    dot.classList.add("health-overall-dot--danger");
+    label.textContent = "System under stress";
+    label.style.color = "var(--down)";
+  } else if (cpuPct >= 80 || memPct >= 85 || diskPct >= 85) {
+    dot.classList.add("health-overall-dot--warn");
+    label.textContent = "Elevated usage";
+    label.style.color = "var(--degraded)";
+  } else {
+    dot.classList.add("health-overall-dot--ok");
+    label.textContent = "All systems normal";
+    label.style.color = "var(--up)";
+  }
+  if ($("hLastRefreshed")) {
+    $("hLastRefreshed").textContent = `Refreshed ${nowStr()}`;
+  }
+}
+
+// ── Render current snapshot ──────────────────────
+function renderHealthCurrent(m) {
+  // CPU — warn: 80%, critical: 90%
+  $("hCpu").textContent = m.cpu_percent.toFixed(1);
+  updateBar($("hCpuBar"), $("hCardCpu"), m.cpu_percent, 80, 90);
+  updateTileBadge($("hCpuBadge"), $("hCardCpu"), m.cpu_percent, 80, 90);
+
+  // Memory — warn: 85%, critical: 90%
+  $("hMem").textContent = m.memory_percent.toFixed(1);
+  updateBar($("hMemBar"), $("hCardMem"), m.memory_percent, 85, 90);
+  updateTileBadge($("hMemBadge"), $("hCardMem"), m.memory_percent, 85, 90);
+  $("hMemSub").textContent = `${fmtMB(m.memory_used_mb)} / ${fmtMB(m.memory_total_mb)}`;
+
+  // Disk — warn: 85%, critical: 90%
+  $("hDisk").textContent = m.disk_percent.toFixed(1);
+  updateBar($("hDiskBar"), $("hCardDisk"), m.disk_percent, 85, 90);
+  updateTileBadge($("hDiskBadge"), $("hCardDisk"), m.disk_percent, 85, 90);
+  $("hDiskSub").textContent = `${m.disk_used_gb.toFixed(1)} GB / ${m.disk_total_gb.toFixed(1)} GB`;
+
+  // Network
+  $("hNetSent").textContent = fmtMB(m.net_bytes_sent_mb);
+  $("hNetRecv").textContent = fmtMB(m.net_bytes_recv_mb);
+  $("hNetSub").textContent  = `↑ ${m.net_packets_sent.toLocaleString()} pkts  ↓ ${m.net_packets_recv.toLocaleString()} pkts`;
+
+  // Network badge — based on total packets sent
+  const netBadge = $("hNetBadge");
+  const netTile  = $("hCardNet");
+  netBadge.className = "health-tile-badge";
+  netTile.classList.remove("tile--warn", "tile--danger");
+  if (m.net_packets_sent < 1000) {
+    netBadge.textContent = "IDLE";
+    netBadge.classList.add("health-tile-badge--ok");
+  } else if (m.net_packets_sent < 500_000) {
+    netBadge.textContent = "NORMAL";
+    netBadge.classList.add("health-tile-badge--ok");
+  } else {
+    netBadge.textContent = "HIGH";
+    netBadge.classList.add("health-tile-badge--warn");
+    netTile.classList.add("tile--warn");
+  }
+
+  // Overall status bar
+  updateOverallStatus(m.cpu_percent, m.memory_percent, m.disk_percent);
+}
+
+// ── Render history charts + table ───────────────
+function renderHealthHistory(rows) {
+  if (!rows.length) return;
+
+  const labels   = rows.map(r => {
+    try { return new Date(r.recorded_at + " UTC").toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }); }
+    catch { return r.recorded_at; }
+  });
+
+  // Update chart range label
+  if (rows.length > 1) {
+    $("trendRange").textContent = `${rows.length} samples · last ${Math.round(rows.length * 0.5)} min`;
+  }
+
+  // Update chart data with smooth animation
+  const update = (chart, data) => {
+    chart.data.labels            = labels;
+    chart.data.datasets[0].data  = data;
+    chart.update();   // default easing, no "none"
+  };
+
+  update(healthCharts.cpu,  rows.map(r => r.cpu_percent));
+  update(healthCharts.mem,  rows.map(r => r.memory_percent));
+  update(healthCharts.disk, rows.map(r => r.disk_percent));
+  update(healthCharts.net,  rows.map(r => r.net_bytes_sent_mb));
+
+
+
+
+}
+
+// ── Load health data ─────────────────────────────
+async function loadHealth() {
+  try {
+    const [current, history] = await Promise.all([
+      api("/api/health/current"),
+      api("/api/health/history?limit=60"),
+    ]);
+    renderHealthCurrent(current);
+    renderHealthHistory(history);
+  } catch (e) {
+    console.error("Health load failed:", e);
+  }
+}
+
+// ── Auto-refresh health every 30s when tab is active ────
+let healthAutoRefresh = null;
+
+function startHealthAutoRefresh() {
+  if (healthAutoRefresh) return;
+  healthAutoRefresh = setInterval(async () => {
+    await loadHealth();
+  }, 30_000);
+}
+
+function stopHealthAutoRefresh() {
+  if (healthAutoRefresh) {
+    clearInterval(healthAutoRefresh);
+    healthAutoRefresh = null;
+  }
+}
+
+// ── Init on tab open ─────────────────────────────
+document.querySelectorAll(".nav-item").forEach(item => {
+  item.addEventListener("click", () => {
+    if (item.dataset.section === "health") {
+      if (!healthCharts.cpu) initHealthCharts();
+      loadHealth();
+      startHealthAutoRefresh();
+    } else {
+      stopHealthAutoRefresh();
+    }
+  });
+});

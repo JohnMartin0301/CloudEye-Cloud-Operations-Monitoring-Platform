@@ -43,12 +43,12 @@ def init_db():
     count = cur.fetchone()[0]
     if count == 0:
         default_services = [
-            ("GitHub",        "https://github.com",       0, "UP"),
-            ("Cloudflare DNS","https://one.one.one.one",  0, "UP"),
-            ("Auth API",      "https://httpbin.org/get",  0, "UP"),
-            ("Payment API",   "https://httpbin.org/status/200", 0, "UP"),
-            ("User Service",  "http://localhost:9999",    1, "DOWN"),
-            ("Cache Service", "http://localhost:9998",    1, "UP"),
+            ("Cloudflare DNS", "https://one.one.one.one",      0, "UP"),
+            ("Google DNS",     "https://8.8.8.8",              0, "UP"),
+            ("GitHub",         "https://github.com",           0, "UP"),
+            ("Auth Service",   "http://internal/api/mock/auth",    1, "UP"),
+            ("Cache Service",  "http://internal/api/mock/cache",   1, "DOWN"),
+            ("Database",       "http://internal/api/mock/database",   1, "UP"),
         ]
         cur.executemany(
             "INSERT INTO services (name, url, use_mock, mock_status) VALUES (?,?,?,?)",
@@ -102,6 +102,24 @@ def init_db():
             note TEXT,
             created_at TEXT DEFAULT (datetime('now')),
             FOREIGN KEY (incident_id) REFERENCES incidents(id)
+        )
+    """)
+
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS system_metrics (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            cpu_percent REAL,
+            memory_percent REAL,
+            memory_used_mb REAL,
+            memory_total_mb REAL,
+            disk_percent REAL,
+            disk_used_gb REAL,
+            disk_total_gb REAL,
+            net_bytes_sent_mb REAL,
+            net_bytes_recv_mb REAL,
+            net_packets_sent INTEGER,
+            net_packets_recv INTEGER,
+            recorded_at TEXT DEFAULT (datetime('now'))
         )
     """)
 

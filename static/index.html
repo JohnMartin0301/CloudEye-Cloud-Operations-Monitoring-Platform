@@ -34,10 +34,9 @@
         <span class="nav-label">Incidents</span>
         <span class="badge-open" id="incidentBadge" style="display:none">0</span>
       </a>
-      <a href="#health" class="nav-item disabled" data-section="health">
+      <a href="#health" class="nav-item" data-section="health">
         <span class="nav-icon">◎</span>
         <span class="nav-label">System Health</span>
-        <span class="badge-soon">Phase 4</span>
       </a>
     </nav>
 
@@ -46,7 +45,7 @@
         <span class="dot dot--green"></span>
         <span class="status-text">Engine running</span>
       </div>
-      <div class="version">v0.3.0 — Phase 3</div>
+      <div class="version">v0.4.0 — Phase 4</div>
     </div>
   </aside>
 
@@ -350,12 +349,103 @@
       </div>
 
     </section>
-    <section class="section section--placeholder" id="section-health" style="display:none">
-      <div class="placeholder-card">
-        <div class="placeholder-icon">◎</div>
-        <div class="placeholder-title">System Health</div>
-        <div class="placeholder-desc">Live CPU, memory, and disk metrics via psutil. Coming in Phase 4.</div>
+    <!-- ── Section: System Health ── -->
+    <section class="section section--health" id="section-health" style="display:none">
+
+      <!-- Status bar: one-line summary + refresh -->
+      <div class="health-statusbar">
+        <div class="health-statusbar-left">
+          <span class="health-overall-dot" id="hOverallDot"></span>
+          <span class="health-overall-label" id="hOverallLabel">—</span>
+          <span class="health-statusbar-sep">·</span>
+          <span class="health-statusbar-meta" id="trendRange">loading…</span>
+        </div>
+        <div class="health-statusbar-right">
+          <span class="health-statusbar-meta" id="hLastRefreshed">—</span>
+        </div>
       </div>
+
+      <!-- 4 merged metric+chart cards in one row -->
+      <div class="health-grid">
+
+        <!-- CPU -->
+        <div class="health-tile" id="hCardCpu">
+          <div class="health-tile-header">
+            <div class="health-tile-meta">
+              <span class="health-tile-label">CPU</span>
+              <span class="health-tile-badge" id="hCpuBadge">—</span>
+            </div>
+            <div class="health-tile-stat">
+              <span class="health-tile-value" id="hCpu">—</span>
+              <span class="health-tile-unit">%</span>
+            </div>
+          </div>
+          <div class="health-bar-wrap"><div class="health-bar" id="hCpuBar"></div></div>
+          <div class="health-tile-chart">
+            <canvas id="chartCpu" height="80"></canvas>
+          </div>
+        </div>
+
+        <!-- Memory -->
+        <div class="health-tile" id="hCardMem">
+          <div class="health-tile-header">
+            <div class="health-tile-meta">
+              <span class="health-tile-label">Memory</span>
+              <span class="health-tile-badge" id="hMemBadge">—</span>
+            </div>
+            <div class="health-tile-stat">
+              <span class="health-tile-value" id="hMem">—</span>
+              <span class="health-tile-unit">%</span>
+            </div>
+          </div>
+          <div class="health-bar-wrap"><div class="health-bar" id="hMemBar"></div></div>
+          <div class="health-sub" id="hMemSub"></div>
+          <div class="health-tile-chart">
+            <canvas id="chartMem" height="80"></canvas>
+          </div>
+        </div>
+
+        <!-- Disk -->
+        <div class="health-tile" id="hCardDisk">
+          <div class="health-tile-header">
+            <div class="health-tile-meta">
+              <span class="health-tile-label">Disk</span>
+              <span class="health-tile-badge" id="hDiskBadge">—</span>
+            </div>
+            <div class="health-tile-stat">
+              <span class="health-tile-value" id="hDisk">—</span>
+              <span class="health-tile-unit">%</span>
+            </div>
+          </div>
+          <div class="health-bar-wrap"><div class="health-bar" id="hDiskBar"></div></div>
+          <div class="health-sub" id="hDiskSub"></div>
+          <div class="health-tile-chart">
+            <canvas id="chartDisk" height="80"></canvas>
+          </div>
+        </div>
+
+        <!-- Network -->
+        <div class="health-tile" id="hCardNet">
+          <div class="health-tile-header">
+            <div class="health-tile-meta">
+              <span class="health-tile-label">Network I/O</span>
+              <span class="health-tile-badge" id="hNetBadge">—</span>
+            </div>
+          </div>
+          <div class="health-net-inline">
+            <span class="health-net-dir">↑</span>
+            <span class="health-net-val" id="hNetSent">—</span>
+            <span class="health-net-dir">↓</span>
+            <span class="health-net-val" id="hNetRecv">—</span>
+          </div>
+          <div class="health-net-pkts" id="hNetSub"></div>
+          <div class="health-tile-chart">
+            <canvas id="chartNet" height="80"></canvas>
+          </div>
+        </div>
+
+      </div>
+
     </section>
 
   </main>
@@ -454,6 +544,7 @@
     </div>
   </div>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
   <script src="/static/app.js"></script>
 </body>
 </html>

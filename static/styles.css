@@ -1305,21 +1305,352 @@ select.input { cursor: pointer; }
   margin-left: 4px;
 }
 
-/* ─── Responsive ─── */
-@media (max-width: 768px) {
-  .incident-meta { gap: 14px; }
+/* ════════════════════════════════════════════════
+   RESPONSIVE — full breakpoint system
+   768px  tablet / small desktop
+   600px  tablet portrait
+   480px  large phone
+════════════════════════════════════════════════ */
 
+/* ── 768px: collapse sidebar to off-canvas ── */
+@media (max-width: 768px) {
+  .sidebar {
+    transform: translateX(-100%);
+    z-index: 200;
+    box-shadow: 4px 0 24px rgba(0,0,0,0.5);
+  }
+  .sidebar.open { transform: translateX(0); }
+  .main         { margin-left: 0; }
+  .mobile-menu-btn { display: block; }
+  .topbar       { padding: 0 12px; gap: 8px; }
+  .last-updated { display: none; }
+  .section      { padding: 16px 12px; }
+
+  /* Summary cards 2×2 */
+  .summary-row  { grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 12px; }
+  .stat-value   { font-size: 22px; }
+
+  /* Panel header stacks */
+  .panel-header  { flex-direction: column; align-items: flex-start; }
+  .panel-actions { width: 100%; justify-content: space-between; }
+
+  /* Service table: hide Type + Actions columns */
   .services-table th:nth-child(5),
   .services-table td:nth-child(5),
   .services-table th:nth-child(6),
-  .services-table td:nth-child(6) {
-    display: none;
-  }
+  .services-table td:nth-child(6) { display: none; }
+
+  /* Incidents */
+  .incident-meta { gap: 14px; }
 }
 
+/* ── 600px ── */
+@media (max-width: 600px) {
+  .breadcrumb-root,
+  .breadcrumb-sep { display: none; }
+  .summary-row    { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* ── 480px: phone ── */
 @media (max-width: 480px) {
+  .stat-card  { padding: 12px; }
+  .stat-value { font-size: 20px; }
+
+  /* Hide response column */
   .services-table th:nth-child(3),
-  .services-table td:nth-child(3) {
-    display: none;
+  .services-table td:nth-child(3) { display: none; }
+
+  /* Full-screen modal from bottom */
+  .modal-overlay { padding: 0; align-items: flex-end; }
+  .modal         { width: 100%; border-radius: var(--radius) var(--radius) 0 0; }
+
+  .topbar  { padding: 0 10px; }
+  .btn--sm { padding: 4px 8px; font-size: 11px; }
+}
+
+/* ──────────────────────────────────────────────
+   Phase 4 — System Health Dashboard (Redesign)
+   Goal: entire section fits in one viewport, zero scrolling.
+────────────────────────────────────────────── */
+
+/* ─── Section: fills remaining height exactly, no scroll ─── */
+.section--health {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px 20px 16px;
+  height: calc(100vh - var(--topbar-h));
+  max-height: calc(100vh - var(--topbar-h));
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+/* ─── Status bar: single slim line at top ─── */
+.health-statusbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  flex: 0 0 auto;
+  gap: 12px;
+}
+
+.health-statusbar-left,
+.health-statusbar-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.health-overall-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--text-dim);
+  flex-shrink: 0;
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.5; }
+}
+.health-overall-dot--ok      { background: var(--up);       box-shadow: 0 0 0 2px var(--up-bg); }
+.health-overall-dot--warn    { background: var(--degraded); box-shadow: 0 0 0 2px var(--degraded-bg); }
+.health-overall-dot--danger  { background: var(--down);     box-shadow: 0 0 0 2px var(--down-bg); }
+
+.health-overall-label {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.health-statusbar-sep {
+  color: var(--text-dim);
+  font-size: 12px;
+}
+
+.health-statusbar-meta {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+/* ─── 4-column tile grid — eats all remaining vertical space ─── */
+.health-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  flex: 1 1 0;      /* grow to fill, shrink to fit */
+  min-height: 0;    /* critical: lets flex children shrink below content */
+  overflow: hidden;
+}
+
+/* ─── Each tile: fixed flex column, chart eats leftover height ─── */
+.health-tile {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  display: flex;
+  flex-direction: column;
+  padding: 16px 16px 0;  /* no bottom pad — chart bleeds to edge */
+  gap: 8px;
+  overflow: hidden;       /* hard clip — nothing can leak out */
+  transition: border-color 0.3s, background 0.3s;
+}
+
+.health-tile.tile--warn   { border-color: var(--degraded-border); background: color-mix(in srgb, var(--degraded-bg) 60%, var(--surface)); }
+.health-tile.tile--danger { border-color: var(--down-border);     background: color-mix(in srgb, var(--down-bg)     60%, var(--surface)); }
+
+/* ─── Tile header row ─── */
+.health-tile-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+
+.health-tile-meta {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.health-tile-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--text-muted);
+}
+
+.health-tile-badge {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  padding: 1px 5px;
+  border-radius: 2px;
+  border: 1px solid transparent;
+  letter-spacing: 0.05em;
+  transition: background 0.3s, color 0.3s;
+}
+
+.health-tile-badge--ok     { background: var(--up-bg);       color: var(--up);       border-color: var(--up-border); }
+.health-tile-badge--warn   { background: var(--degraded-bg); color: var(--degraded); border-color: var(--degraded-border); }
+.health-tile-badge--danger { background: var(--down-bg);     color: var(--down);     border-color: var(--down-border); }
+
+/* ─── Big number ─── */
+.health-tile-stat {
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+  flex: 0 0 auto;
+}
+
+.health-tile-value {
+  font-family: var(--font-mono);
+  font-size: 38px;
+  font-weight: 500;
+  color: var(--text);
+  line-height: 1;
+  transition: color 0.3s;
+  letter-spacing: -0.02em;
+}
+
+.health-tile.tile--warn   .health-tile-value { color: var(--degraded); }
+.health-tile.tile--danger .health-tile-value { color: var(--down); }
+
+.health-tile-unit {
+  font-family: var(--font-mono);
+  font-size: 16px;
+  color: var(--text-muted);
+  margin-bottom: 2px;
+}
+
+/* ─── Progress bar ─── */
+.health-bar-wrap {
+  width: 100%;
+  height: 3px;
+  background: var(--surface-3);
+  border-radius: 2px;
+  overflow: hidden;
+  flex: 0 0 auto;
+}
+
+.health-bar {
+  height: 3px;
+  border-radius: 2px;
+  background: var(--accent);
+  transition: width 0.6s cubic-bezier(0.4,0,0.2,1), background 0.3s;
+  width: 0%;
+}
+
+.health-bar--warn   { background: var(--degraded); }
+.health-bar--danger { background: var(--down); }
+
+/* ─── Sub-line (used/total, pkts) ─── */
+.health-sub,
+.health-net-pkts {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-dim);
+  flex: 0 0 auto;
+}
+
+/* ─── Chart: grows to fill leftover tile height on desktop ─── */
+.health-tile-chart {
+  flex: 1 1 0;
+  min-height: 0;
+  position: relative;
+  margin: 4px -16px 0;
+  overflow: hidden;
+}
+
+.health-tile-chart canvas {
+  position: absolute;
+  inset: 0;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* ─── Network inline values — prevent overflow ─── */
+.health-net-inline {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  flex: 0 0 auto;
+  flex-wrap: wrap;        /* wrap if tile too narrow */
+  min-width: 0;
+}
+
+.health-net-dir {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-dim);
+  flex-shrink: 0;
+}
+
+.health-net-val {
+  font-family: var(--font-mono);
+  font-size: 18px;        /* reduced from 22px to prevent overflow */
+  font-weight: 500;
+  color: var(--text);
+  line-height: 1;
+  letter-spacing: -0.01em;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ─── Health responsive breakpoints ─── */
+
+/* Large screens: locked viewport, no scroll */
+@media (min-width: 1101px) {
+  .section--health {
+    height: calc(100vh - var(--topbar-h));
+    max-height: calc(100vh - var(--topbar-h));
+    overflow: hidden;
   }
+  .health-grid { overflow: hidden; }
+}
+
+/* Medium (tablets, 2-col): scrollable */
+@media (max-width: 1100px) {
+  .section--health {
+    height: auto;
+    max-height: none;
+    overflow-y: auto;
+    padding-bottom: 24px;
+  }
+  .health-grid {
+    grid-template-columns: repeat(2, 1fr);
+    overflow: visible;
+  }
+  .health-tile       { min-height: 260px; }
+  .health-tile-chart { flex: 0 0 130px; min-height: 130px; }
+  .health-tile-value { font-size: 32px; }
+}
+
+/* Tablet (768px): sidebar collapses so more room, still 2-col */
+@media (max-width: 768px) {
+  .section--health   { padding: 12px; gap: 10px; }
+  .health-statusbar  { flex-direction: column; align-items: flex-start; gap: 6px; padding: 8px 12px; }
+  .health-statusbar-right { width: 100%; justify-content: flex-end; }
+  .health-grid       { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .health-tile       { min-height: 240px; padding: 14px 14px 0; }
+  .health-tile-chart { flex: 0 0 110px; min-height: 110px; }
+  .health-tile-value { font-size: 28px; }
+  .health-net-val    { font-size: 16px; }
+}
+
+/* Phone (600px): 1-col stacked */
+@media (max-width: 600px) {
+  .health-grid       { grid-template-columns: 1fr; gap: 8px; }
+  .health-tile       { min-height: 200px; }
+  .health-tile-chart { flex: 0 0 100px; min-height: 100px; }
+  .health-tile-value { font-size: 32px; }
+  .health-net-val    { font-size: 20px; }
 }
