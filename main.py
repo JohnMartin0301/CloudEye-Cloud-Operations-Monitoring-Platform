@@ -36,16 +36,16 @@ scheduler = BackgroundScheduler()
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     init_db()
-    threading.Thread(target=run_all_checks, daemon=True).start()                            
-    threading.Thread(target=run_metrics_collection, daemon=True).start()                    
-    scheduler.add_job(run_all_checks, "interval", seconds=30, id="monitor")
+    threading.Thread(target=run_all_checks, daemon=True).start()
+    threading.Thread(target=run_metrics_collection, daemon=True).start()
+    scheduler.add_job(run_all_checks,         "interval", seconds=30, id="services")
     scheduler.add_job(run_metrics_collection, "interval", seconds=30, id="metrics")
     scheduler.start()
     yield
-    scheduler.shutdown()
+    scheduler.shutdown(wait=False)
 
 
-app = FastAPI(title="CloudOps Platform", lifespan=lifespan)
+app = FastAPI(title="CloudEye Platform", lifespan=lifespan)
 
 
 # Static files + SPA root
@@ -131,6 +131,9 @@ def update_service(service_id: int, data: ServiceUpdate):
     if not updates:
         conn.close()
         return {"message": "Nothing to update"}
+    # Convert bool to int for SQLite compatibility
+    if "use_mock" in updates:
+        updates["use_mock"] = int(updates["use_mock"])
     set_clause = ", ".join(f"{k}=?" for k in updates)
     conn.execute(
         f"UPDATE services SET {set_clause} WHERE id=?",
@@ -138,6 +141,16 @@ def update_service(service_id: int, data: ServiceUpdate):
     )
     conn.commit()
     conn.close()
+    # Reset simulation state so changes take effect immediately
+    from monitor import _sim_status, _sim_last_change, save_check_result
+    _sim_status.pop(service_id, None)
+    _sim_last_change.pop(service_id, None)
+    # Run an immediate check so the new status is visible right away
+    svc_conn = get_connection()
+    updated_svc = dict(svc_conn.execute("SELECT * FROM services WHERE id=?", (service_id,)).fetchone())
+    svc_conn.close()
+    result = check_service(updated_svc)
+    save_check_result(result)
     return {"message": "Service updated"}
 
 
@@ -533,3 +546,119 @@ def health_history(limit: int = 60):
 def health_live():
     """Collect and return a fresh live reading (not saved to DB)."""
     return collect_metrics()
+
+# ──────────────────────────────────────────────
+# Automation Rules endpoints
+# ──────────────────────────────────────────────
+
+class RuleCreate(BaseModel):
+    name: str
+    metric: str
+    threshold: float
+    severity: str = "High"
+    enabled: bool = True
+
+
+class RuleUpdate(BaseModel):
+    name: str | None = None
+    metric: str | None = None
+    threshold: float | None = None
+    severity: str | None = None
+    enabled: bool | None = None
+
+
+@app.get("/api/automation/rules")
+def list_rules():
+    conn = get_connection()
+    rows = conn.execute(
+        "SELECT * FROM automation_rules ORDER BY id"
+    ).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+
+@app.post("/api/automation/rules", status_code=201)
+def create_rule(data: RuleCreate):
+    conn = get_connection()
+    cur  = conn.execute(
+        """
+        INSERT INTO automation_rules (name, rule_type, metric, threshold, severity, enabled)
+        VALUES (?,?,?,?,?,?)
+        """,
+        (data.name, "threshold", data.metric, data.threshold,
+         data.severity, int(data.enabled)),
+    )
+    conn.commit()
+    rule_id = cur.lastrowid
+    conn.close()
+    return {"id": rule_id, "message": "Rule created"}
+
+
+@app.patch("/api/automation/rules/{rule_id}")
+def update_rule(rule_id: int, data: RuleUpdate):
+    conn = get_connection()
+    row  = conn.execute(
+        "SELECT id FROM automation_rules WHERE id=?", (rule_id,)
+    ).fetchone()
+    if not row:
+        conn.close()
+        raise HTTPException(status_code=404, detail="Rule not found")
+    updates = {k: v for k, v in data.model_dump().items() if v is not None}
+    if "enabled" in data.model_dump() and data.enabled is not None:
+        updates["enabled"] = int(data.enabled)
+    if not updates:
+        conn.close()
+        return {"message": "Nothing to update"}
+    set_clause = ", ".join(f"{k}=?" for k in updates)
+    conn.execute(
+        f"UPDATE automation_rules SET {set_clause} WHERE id=?",
+        (*updates.values(), rule_id),
+    )
+    conn.commit()
+    conn.close()
+    return {"message": "Rule updated"}
+
+
+@app.delete("/api/automation/rules/{rule_id}")
+def delete_rule(rule_id: int):
+    conn = get_connection()
+    row  = conn.execute(
+        "SELECT id FROM automation_rules WHERE id=?", (rule_id,)
+    ).fetchone()
+    if not row:
+        conn.close()
+        raise HTTPException(status_code=404, detail="Rule not found")
+    conn.execute("DELETE FROM automation_rules WHERE id=?", (rule_id,))
+    conn.commit()
+    conn.close()
+    return {"message": "Rule deleted"}
+
+
+@app.get("/api/automation/events")
+def list_events(limit: int = 20):
+    conn = get_connection()
+    rows = conn.execute(
+        "SELECT * FROM automation_events ORDER BY id DESC LIMIT ?",
+        (limit,),
+    ).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+
+@app.post("/api/automation/rules/{rule_id}/toggle")
+def toggle_rule(rule_id: int):
+    conn = get_connection()
+    row  = conn.execute(
+        "SELECT id, enabled FROM automation_rules WHERE id=?", (rule_id,)
+    ).fetchone()
+    if not row:
+        conn.close()
+        raise HTTPException(status_code=404, detail="Rule not found")
+    new_enabled = 0 if row["enabled"] else 1
+    conn.execute(
+        "UPDATE automation_rules SET enabled=? WHERE id=?",
+        (new_enabled, rule_id),
+    )
+    conn.commit()
+    conn.close()
+    return {"enabled": bool(new_enabled)}

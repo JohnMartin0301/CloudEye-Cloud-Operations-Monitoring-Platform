@@ -1,50 +1,50 @@
-2024-03-15 00:00:01,003 INFO kubelet.node: Node worker-node-03 started kubelet v1.28.4
-2024-03-15 00:00:01,441 INFO kubelet.runtime: Container runtime containerd v1.7.2 initialized
-2024-03-15 00:00:02,003 INFO kubelet.node: Node registered with control plane node=worker-node-03 zone=us-east-1c
-2024-03-15 00:00:05,220 INFO kubelet.pod: Pod scheduled namespace=production name=api-deployment-7d9f8b-xk2pq
-2024-03-15 00:00:05,881 INFO kubelet.pod: Pod scheduled namespace=production name=worker-deployment-5c4d9a-mn3ql
-2024-03-15 00:00:06,112 INFO kubelet.pod: Pod scheduled namespace=monitoring name=prometheus-6f8b9c-vp2rs
-2024-03-15 00:05:00,001 INFO kubelet.healthcheck: Node healthy cpu=12% memory=34% disk=41%
-2024-03-15 00:30:00,001 INFO kubelet.healthcheck: Node healthy cpu=18% memory=41% disk=41%
-2024-03-15 01:00:00,001 INFO kubelet.healthcheck: Node healthy cpu=22% memory=48% disk=42%
-2024-03-15 01:30:00,001 INFO kubelet.healthcheck: Node healthy cpu=31% memory=55% disk=42%
-2024-03-15 02:00:00,001 INFO kubelet.healthcheck: Node healthy cpu=38% memory=63% disk=43%
-2024-03-15 02:14:33,441 WARNING kubelet.memory: Memory usage approaching limit node=worker-node-03 usage=78% threshold=75%
-2024-03-15 02:15:00,001 INFO kubelet.healthcheck: Node degraded cpu=41% memory=79% disk=43%
-2024-03-15 02:22:10,003 WARNING kubelet.memory: Memory pressure condition active — eviction may occur
-2024-03-15 02:22:10,881 WARNING kubelet.eviction: Evicting low-priority pod namespace=staging name=test-runner-abc123 reason=memory_pressure
-2024-03-15 02:22:11,220 INFO kubelet.pod: Pod evicted namespace=staging name=test-runner-abc123
-2024-03-15 02:30:00,001 INFO kubelet.healthcheck: Node healthy cpu=35% memory=61% disk=43%
-2024-03-15 03:00:00,001 INFO kubelet.healthcheck: Node healthy cpu=28% memory=57% disk=43%
-2024-03-15 04:00:00,001 INFO kubelet.healthcheck: Node healthy cpu=19% memory=52% disk=44%
-2024-03-15 05:00:00,001 INFO kubelet.healthcheck: Node healthy cpu=14% memory=49% disk=44%
-2024-03-15 06:00:00,001 INFO kubelet.healthcheck: Node healthy cpu=22% memory=53% disk=44%
-2024-03-15 07:00:00,001 INFO kubelet.healthcheck: Node healthy cpu=44% memory=58% disk=45%
-2024-03-15 07:30:00,001 INFO kubelet.healthcheck: Node healthy cpu=61% memory=64% disk=45%
-2024-03-15 08:00:00,001 INFO kubelet.healthcheck: Node healthy cpu=72% memory=69% disk=46%
-2024-03-15 08:14:22,003 WARNING kubelet.cpu: CPU throttling detected pod=api-deployment-7d9f8b-xk2pq throttled=34%
-2024-03-15 08:30:00,001 INFO kubelet.healthcheck: Node stressed cpu=88% memory=74% disk=46%
-2024-03-15 08:31:44,112 ERROR kubelet.oom: OOM kill triggered process=python3 pod=worker-deployment-5c4d9a-mn3ql namespace=production memory_limit=512Mi
-2024-03-15 08:31:44,113 ERROR kubelet.pod: Pod crashed namespace=production name=worker-deployment-5c4d9a-mn3ql reason=OOMKilled exit_code=137
-2024-03-15 08:31:44,441 INFO kubelet.pod: Restarting pod namespace=production name=worker-deployment-5c4d9a-mn3ql restart_count=1
-2024-03-15 08:31:55,003 INFO kubelet.pod: Pod restarted successfully namespace=production name=worker-deployment-5c4d9a-mn3ql
-2024-03-15 08:45:33,881 ERROR kubelet.oom: OOM kill triggered process=python3 pod=worker-deployment-5c4d9a-mn3ql namespace=production memory_limit=512Mi
-2024-03-15 08:45:33,882 ERROR kubelet.pod: Pod crashed namespace=production name=worker-deployment-5c4d9a-mn3ql reason=OOMKilled exit_code=137 restart_count=2
-2024-03-15 08:45:34,001 WARNING kubelet.pod: Pod restart loop detected namespace=production name=worker-deployment-5c4d9a-mn3ql restarts=2 — CrashLoopBackOff imminent
-2024-03-15 08:45:34,110 INFO kubelet.pod: Restarting pod namespace=production name=worker-deployment-5c4d9a-mn3ql restart_count=2
-2024-03-15 09:00:00,001 INFO kubelet.healthcheck: Node stressed cpu=91% memory=77% disk=47%
-2024-03-15 09:02:11,441 ERROR kubelet.oom: OOM kill triggered process=python3 pod=worker-deployment-5c4d9a-mn3ql namespace=production memory_limit=512Mi
-2024-03-15 09:02:11,442 ERROR kubelet.pod: Pod crashed namespace=production name=worker-deployment-5c4d9a-mn3ql reason=OOMKilled exit_code=137 restart_count=3
-2024-03-15 09:02:11,550 CRITICAL kubelet.pod: CrashLoopBackOff namespace=production name=worker-deployment-5c4d9a-mn3ql — pod is crash looping restarts=3
-2024-03-15 09:02:12,003 WARNING kubelet.node: Node pressure escalating — notifying control plane
-2024-03-15 09:10:00,001 INFO kubelet.scheduler: Control plane rescheduling pod to worker-node-05
-2024-03-15 09:10:01,220 INFO kubelet.pod: Pod terminated on worker-node-03 namespace=production name=worker-deployment-5c4d9a-mn3ql
-2024-03-15 09:30:00,001 INFO kubelet.healthcheck: Node healthy cpu=55% memory=61% disk=47%
-2024-03-15 10:00:00,001 INFO kubelet.healthcheck: Node healthy cpu=48% memory=58% disk=48%
-2024-03-15 10:30:00,001 INFO kubelet.healthcheck: Node healthy cpu=41% memory=54% disk=48%
-2024-03-15 11:00:00,001 INFO kubelet.healthcheck: Node healthy cpu=38% memory=51% disk=49%
-2024-03-15 11:30:00,001 INFO kubelet.healthcheck: Node healthy cpu=35% memory=49% disk=49%
-2024-03-15 11:45:22,881 WARNING kubelet.disk: Disk usage approaching limit node=worker-node-03 usage=72% threshold=70%
-2024-03-15 11:45:23,003 INFO kubelet.gc: Container image garbage collection triggered — reclaiming disk space
-2024-03-15 11:45:55,441 INFO kubelet.gc: Image GC completed reclaimed=4.2GB disk_usage=58%
-2024-03-15 12:00:00,001 INFO kubelet.healthcheck: Node healthy cpu=32% memory=48% disk=58%
+2026-02-26 00:00:01,003 INFO kubelet.node: Node worker-node-03 started kubelet v1.28.4
+2026-02-26 00:00:01,441 INFO kubelet.runtime: Container runtime containerd v1.7.2 initialized
+2026-02-26 00:00:02,003 INFO kubelet.node: Node registered with control plane node=worker-node-03 zone=us-east-1c
+2026-02-26 00:00:05,220 INFO kubelet.pod: Pod scheduled namespace=production name=api-deployment-7d9f8b-xk2pq
+2026-02-26 00:00:05,881 INFO kubelet.pod: Pod scheduled namespace=production name=worker-deployment-5c4d9a-mn3ql
+2026-02-26 00:00:06,112 INFO kubelet.pod: Pod scheduled namespace=monitoring name=prometheus-6f8b9c-vp2rs
+2026-02-26 00:05:00,001 INFO kubelet.healthcheck: Node healthy cpu=12% memory=34% disk=41%
+2026-02-26 00:30:00,001 INFO kubelet.healthcheck: Node healthy cpu=18% memory=41% disk=41%
+2026-02-26 01:00:00,001 INFO kubelet.healthcheck: Node healthy cpu=22% memory=48% disk=42%
+2026-02-26 01:30:00,001 INFO kubelet.healthcheck: Node healthy cpu=31% memory=55% disk=42%
+2026-02-26 02:00:00,001 INFO kubelet.healthcheck: Node healthy cpu=38% memory=63% disk=43%
+2026-02-26 02:14:33,441 WARNING kubelet.memory: Memory usage approaching limit node=worker-node-03 usage=78% threshold=75%
+2026-02-26 02:15:00,001 INFO kubelet.healthcheck: Node degraded cpu=41% memory=79% disk=43%
+2026-02-26 02:22:10,003 WARNING kubelet.memory: Memory pressure condition active — eviction may occur
+2026-02-26 02:22:10,881 WARNING kubelet.eviction: Evicting low-priority pod namespace=staging name=test-runner-abc123 reason=memory_pressure
+2026-02-26 02:22:11,220 INFO kubelet.pod: Pod evicted namespace=staging name=test-runner-abc123
+2026-02-26 02:30:00,001 INFO kubelet.healthcheck: Node healthy cpu=35% memory=61% disk=43%
+2026-02-26 03:00:00,001 INFO kubelet.healthcheck: Node healthy cpu=28% memory=57% disk=43%
+2026-02-26 04:00:00,001 INFO kubelet.healthcheck: Node healthy cpu=19% memory=52% disk=44%
+2026-02-26 05:00:00,001 INFO kubelet.healthcheck: Node healthy cpu=14% memory=49% disk=44%
+2026-02-26 06:00:00,001 INFO kubelet.healthcheck: Node healthy cpu=22% memory=53% disk=44%
+2026-02-26 07:00:00,001 INFO kubelet.healthcheck: Node healthy cpu=44% memory=58% disk=45%
+2026-02-26 07:30:00,001 INFO kubelet.healthcheck: Node healthy cpu=61% memory=64% disk=45%
+2026-02-26 08:00:00,001 INFO kubelet.healthcheck: Node healthy cpu=72% memory=69% disk=46%
+2026-02-26 08:14:22,003 WARNING kubelet.cpu: CPU throttling detected pod=api-deployment-7d9f8b-xk2pq throttled=34%
+2026-02-26 08:30:00,001 INFO kubelet.healthcheck: Node stressed cpu=88% memory=74% disk=46%
+2026-02-26 08:31:44,112 ERROR kubelet.oom: OOM kill triggered process=python3 pod=worker-deployment-5c4d9a-mn3ql namespace=production memory_limit=512Mi
+2026-02-26 08:31:44,113 ERROR kubelet.pod: Pod crashed namespace=production name=worker-deployment-5c4d9a-mn3ql reason=OOMKilled exit_code=137
+2026-02-26 08:31:44,441 INFO kubelet.pod: Restarting pod namespace=production name=worker-deployment-5c4d9a-mn3ql restart_count=1
+2026-02-26 08:31:55,003 INFO kubelet.pod: Pod restarted successfully namespace=production name=worker-deployment-5c4d9a-mn3ql
+2026-02-26 08:45:33,881 ERROR kubelet.oom: OOM kill triggered process=python3 pod=worker-deployment-5c4d9a-mn3ql namespace=production memory_limit=512Mi
+2026-02-26 08:45:33,882 ERROR kubelet.pod: Pod crashed namespace=production name=worker-deployment-5c4d9a-mn3ql reason=OOMKilled exit_code=137 restart_count=2
+2026-02-26 08:45:34,001 WARNING kubelet.pod: Pod restart loop detected namespace=production name=worker-deployment-5c4d9a-mn3ql restarts=2 — CrashLoopBackOff imminent
+2026-02-26 08:45:34,110 INFO kubelet.pod: Restarting pod namespace=production name=worker-deployment-5c4d9a-mn3ql restart_count=2
+2026-02-26 09:00:00,001 INFO kubelet.healthcheck: Node stressed cpu=91% memory=77% disk=47%
+2026-02-26 09:02:11,441 ERROR kubelet.oom: OOM kill triggered process=python3 pod=worker-deployment-5c4d9a-mn3ql namespace=production memory_limit=512Mi
+2026-02-26 09:02:11,442 ERROR kubelet.pod: Pod crashed namespace=production name=worker-deployment-5c4d9a-mn3ql reason=OOMKilled exit_code=137 restart_count=3
+2026-02-26 09:02:11,550 CRITICAL kubelet.pod: CrashLoopBackOff namespace=production name=worker-deployment-5c4d9a-mn3ql — pod is crash looping restarts=3
+2026-02-26 09:02:12,003 WARNING kubelet.node: Node pressure escalating — notifying control plane
+2026-02-26 09:10:00,001 INFO kubelet.scheduler: Control plane rescheduling pod to worker-node-05
+2026-02-26 09:10:01,220 INFO kubelet.pod: Pod terminated on worker-node-03 namespace=production name=worker-deployment-5c4d9a-mn3ql
+2026-02-26 09:30:00,001 INFO kubelet.healthcheck: Node healthy cpu=55% memory=61% disk=47%
+2026-02-26 10:00:00,001 INFO kubelet.healthcheck: Node healthy cpu=48% memory=58% disk=48%
+2026-02-26 10:30:00,001 INFO kubelet.healthcheck: Node healthy cpu=41% memory=54% disk=48%
+2026-02-26 11:00:00,001 INFO kubelet.healthcheck: Node healthy cpu=38% memory=51% disk=49%
+2026-02-26 11:30:00,001 INFO kubelet.healthcheck: Node healthy cpu=35% memory=49% disk=49%
+2026-02-26 11:45:22,881 WARNING kubelet.disk: Disk usage approaching limit node=worker-node-03 usage=72% threshold=70%
+2026-02-26 11:45:23,003 INFO kubelet.gc: Container image garbage collection triggered — reclaiming disk space
+2026-02-26 11:45:55,441 INFO kubelet.gc: Image GC completed reclaimed=4.2GB disk_usage=58%
+2026-02-26 12:00:00,001 INFO kubelet.healthcheck: Node healthy cpu=32% memory=48% disk=58%

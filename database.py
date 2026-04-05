@@ -1,12 +1,15 @@
 import sqlite3
 import os
 
-DB_PATH = os.path.join(os.path.dirname(__file__), "cloudeye.db")
+# Use /app/data when running in Docker (volume-mounted), fall back to local dir
+_DATA_DIR = "/app/data" if os.path.isdir("/app/data") else os.path.dirname(__file__)
+DB_PATH = os.path.join(_DATA_DIR, "cloudeye.db")
 
 
 def get_connection():
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(DB_PATH, timeout=10)
     conn.row_factory = sqlite3.Row
+    conn.execute("PRAGMA journal_mode=WAL")
     return conn
 
 
@@ -43,12 +46,12 @@ def init_db():
     count = cur.fetchone()[0]
     if count == 0:
         default_services = [
-            ("Cloudflare DNS", "https://one.one.one.one",      0, "UP"),
-            ("Google DNS",     "https://8.8.8.8",              0, "UP"),
-            ("GitHub",         "https://github.com",           0, "UP"),
-            ("Auth Service",   "http://internal/api/mock/auth",    1, "UP"),
-            ("Cache Service",  "http://internal/api/mock/cache",   1, "DOWN"),
-            ("Database",       "http://internal/api/mock/database",   1, "UP"),
+            ("Cloudflare DNS", "https://one.one.one.one",           0, "UP"),
+            ("Google DNS",     "https://8.8.8.8",                   0, "UP"),
+            ("GitHub",         "https://github.com",                 0, "UP"),
+            ("Auth Service",   "http://internal/api/mock/auth",      1, "UP"),
+            ("Cache Service",  "http://internal/api/mock/cache",     1, "DOWN"),
+            ("Database",       "http://internal/api/mock/database",  1, "UP"),
         ]
         cur.executemany(
             "INSERT INTO services (name, url, use_mock, mock_status) VALUES (?,?,?,?)",
@@ -122,6 +125,53 @@ def init_db():
             recorded_at TEXT DEFAULT (datetime('now'))
         )
     """)
+
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS automation_rules (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            rule_type TEXT NOT NULL,
+            metric TEXT NOT NULL,
+            threshold REAL NOT NULL,
+            severity TEXT NOT NULL DEFAULT 'High',
+            enabled INTEGER DEFAULT 1,
+            created_at TEXT DEFAULT (datetime('now'))
+        )
+    """)
+
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS automation_events (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            rule_id INTEGER NOT NULL,
+            rule_name TEXT NOT NULL,
+            metric TEXT NOT NULL,
+            value REAL NOT NULL,
+            threshold REAL NOT NULL,
+            action_taken TEXT NOT NULL,
+            incident_id INTEGER,
+            triggered_at TEXT DEFAULT (datetime('now')),
+            FOREIGN KEY (rule_id) REFERENCES automation_rules(id)
+        )
+    """)
+
+    # Seed default automation rules
+    cur.execute("SELECT COUNT(*) FROM automation_rules")
+    if cur.fetchone()[0] == 0:
+        default_rules = [
+            # CPU
+            ("High CPU Usage",        "threshold", "cpu_percent",    80.0, "High"),
+            ("Critical CPU Usage",    "threshold", "cpu_percent",    90.0, "Critical"),
+            # Memory
+            ("High Memory Usage",     "threshold", "memory_percent", 85.0, "High"),
+            ("Critical Memory Usage", "threshold", "memory_percent", 90.0, "Critical"),
+            # Disk
+            ("High Disk Usage",       "threshold", "disk_percent",   85.0, "High"),
+            ("Critical Disk Usage",   "threshold", "disk_percent",   90.0, "Critical"),
+        ]
+        cur.executemany(
+            "INSERT INTO automation_rules (name, rule_type, metric, threshold, severity) VALUES (?,?,?,?,?)",
+            default_rules
+        )
 
     conn.commit()
     conn.close()

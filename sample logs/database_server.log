@@ -1,50 +1,50 @@
-2024-03-15 00:00:00,881 INFO postgres.startup: PostgreSQL 15.4 starting up pid=1 data=/var/lib/postgresql/data
-2024-03-15 00:00:01,220 INFO postgres.startup: Database system is ready to accept connections
-2024-03-15 00:00:01,441 INFO postgres.replication: Replication slot active replica=db-replica-01 lag=0ms
-2024-03-15 00:05:00,001 INFO postgres.stats: Connections active=12 idle=8 max=100 cache_hit_ratio=98.4%
-2024-03-15 00:10:33,112 DEBUG postgres.query: Slow query detected duration=1201ms query=SELECT * FROM orders WHERE status='pending' AND created_at > NOW() - INTERVAL '7 days'
-2024-03-15 00:15:00,001 INFO postgres.stats: Connections active=14 idle=6 max=100 cache_hit_ratio=98.1%
-2024-03-15 00:30:00,001 INFO postgres.stats: Connections active=11 idle=9 max=100 cache_hit_ratio=98.6%
-2024-03-15 01:00:00,001 INFO postgres.maintenance: Autovacuum starting on table=orders
-2024-03-15 01:00:45,441 INFO postgres.maintenance: Autovacuum completed table=orders dead_tuples_removed=14221 duration=44s
-2024-03-15 01:30:00,001 INFO postgres.stats: Connections active=8 idle=12 max=100 cache_hit_ratio=99.1%
-2024-03-15 02:00:00,001 INFO postgres.backup: Scheduled base backup starting
-2024-03-15 02:00:00,881 INFO postgres.replication: Replication slot active replica=db-replica-01 lag=2ms
-2024-03-15 02:14:33,441 WARNING postgres.backup: Backup duration exceeding threshold elapsed=14m expected=10m
-2024-03-15 02:22:10,003 INFO postgres.backup: Base backup completed size=42GB duration=22m14s
-2024-03-15 03:00:00,001 INFO postgres.stats: Connections active=9 idle=11 max=100 cache_hit_ratio=98.8%
-2024-03-15 04:00:00,001 INFO postgres.stats: Connections active=7 idle=13 max=100 cache_hit_ratio=99.2%
-2024-03-15 05:00:00,001 INFO postgres.stats: Connections active=6 idle=14 max=100 cache_hit_ratio=99.3%
-2024-03-15 06:00:00,001 INFO postgres.stats: Connections active=15 idle=5 max=100 cache_hit_ratio=98.5%
-2024-03-15 06:30:00,001 INFO postgres.replication: Replication slot active replica=db-replica-01 lag=4ms
-2024-03-15 07:00:00,001 INFO postgres.stats: Connections active=28 idle=12 max=100 cache_hit_ratio=97.9%
-2024-03-15 07:30:00,001 INFO postgres.stats: Connections active=44 idle=6 max=100 cache_hit_ratio=97.2%
-2024-03-15 07:45:12,881 WARNING postgres.connections: Connection count approaching limit active=71 max=100 threshold=70%
-2024-03-15 07:45:13,003 WARNING postgres.replication: Replication lag increasing replica=db-replica-01 lag=1240ms threshold=500ms
-2024-03-15 07:50:00,001 INFO postgres.stats: Connections active=78 idle=2 max=100 cache_hit_ratio=96.1%
-2024-03-15 07:55:22,441 ERROR postgres.connections: Max connections reached active=100 max=100 — new connections being refused
-2024-03-15 07:55:22,442 ERROR postgres.query: Query failed reason=connection_refused user=app_user database=production
-2024-03-15 07:55:22,881 ERROR postgres.query: Query failed reason=connection_refused user=app_user database=production
-2024-03-15 07:55:23,003 ERROR postgres.query: Query failed reason=connection_refused user=reporting_user database=production
-2024-03-15 07:55:23,110 CRITICAL postgres.connections: Database connection pool exhausted — service impact imminent
-2024-03-15 07:55:23,441 WARNING postgres.replication: Replication lag critical replica=db-replica-01 lag=8820ms
-2024-03-15 07:58:00,001 INFO postgres.pgbouncer: PgBouncer connection pooler applied — reducing direct connections
-2024-03-15 07:58:30,881 INFO postgres.stats: Connections active=62 idle=8 max=100 cache_hit_ratio=96.8%
-2024-03-15 08:00:00,001 INFO postgres.replication: Replication slot active replica=db-replica-01 lag=210ms
-2024-03-15 08:05:00,001 INFO postgres.stats: Connections active=48 idle=22 max=100 cache_hit_ratio=97.4%
-2024-03-15 08:10:00,001 INFO postgres.replication: Replication slot active replica=db-replica-01 lag=12ms
-2024-03-15 08:30:00,001 INFO postgres.stats: Connections active=41 idle=29 max=100 cache_hit_ratio=97.8%
-2024-03-15 09:00:00,001 INFO postgres.stats: Connections active=38 idle=32 max=100 cache_hit_ratio=98.1%
-2024-03-15 09:30:22,112 DEBUG postgres.query: Slow query detected duration=3410ms query=SELECT u.*, o.*, p.* FROM users u JOIN orders o ON u.id=o.user_id JOIN products p ON o.product_id=p.id WHERE o.created_at > NOW() - INTERVAL '30 days'
-2024-03-15 09:30:22,113 WARNING postgres.query: Query execution plan missing index — full table scan on orders rows_examined=2841992
-2024-03-15 09:30:22,441 WARNING postgres.performance: Recommend adding index on orders(created_at, user_id) estimated_improvement=94%
-2024-03-15 10:00:00,001 INFO postgres.stats: Connections active=35 idle=35 max=100 cache_hit_ratio=98.4%
-2024-03-15 10:30:00,001 INFO postgres.stats: Connections active=33 idle=37 max=100 cache_hit_ratio=98.6%
-2024-03-15 11:00:00,001 INFO postgres.stats: Connections active=30 idle=40 max=100 cache_hit_ratio=98.8%
-2024-03-15 11:14,441 ERROR postgres.disk: Disk usage critical mount=/var/lib/postgresql usage=91% threshold=85%
-2024-03-15 11:14,442 ERROR postgres.disk: Write-ahead log (WAL) accumulation detected wal_size=18GB
-2024-03-15 11:14,550 CRITICAL postgres.disk: Disk space critical — database writes may fail if not resolved mount=/var/lib/postgresql free=9GB
-2024-03-15 11:15,003 WARNING postgres.maintenance: Triggering emergency WAL archival and cleanup
-2024-03-15 11:18,441 INFO postgres.maintenance: WAL cleanup completed reclaimed=12GB disk_usage=74%
-2024-03-15 12:00:00,001 INFO postgres.stats: Connections active=28 idle=42 max=100 cache_hit_ratio=99.0%
-2024-03-15 12:00:00,881 INFO postgres.replication: Replication slot active replica=db-replica-01 lag=8ms
+2026-02-09 00:00:00,881 INFO postgres.startup: PostgreSQL 15.4 starting up pid=1 data=/var/lib/postgresql/data
+2026-02-09 00:00:01,220 INFO postgres.startup: Database system is ready to accept connections
+2026-02-09 00:00:01,441 INFO postgres.replication: Replication slot active replica=db-replica-01 lag=0ms
+2026-02-09 00:05:00,001 INFO postgres.stats: Connections active=12 idle=8 max=100 cache_hit_ratio=98.4%
+2026-02-09 00:10:33,112 DEBUG postgres.query: Slow query detected duration=1201ms query=SELECT * FROM orders WHERE status='pending' AND created_at > NOW() - INTERVAL '7 days'
+2026-02-09 00:15:00,001 INFO postgres.stats: Connections active=14 idle=6 max=100 cache_hit_ratio=98.1%
+2026-02-09 00:30:00,001 INFO postgres.stats: Connections active=11 idle=9 max=100 cache_hit_ratio=98.6%
+2026-02-09 01:00:00,001 INFO postgres.maintenance: Autovacuum starting on table=orders
+2026-02-09 01:00:45,441 INFO postgres.maintenance: Autovacuum completed table=orders dead_tuples_removed=14221 duration=44s
+2026-02-09 01:30:00,001 INFO postgres.stats: Connections active=8 idle=12 max=100 cache_hit_ratio=99.1%
+2026-02-09 02:00:00,001 INFO postgres.backup: Scheduled base backup starting
+2026-02-09 02:00:00,881 INFO postgres.replication: Replication slot active replica=db-replica-01 lag=2ms
+2026-02-09 02:14:33,441 WARNING postgres.backup: Backup duration exceeding threshold elapsed=14m expected=10m
+2026-02-09 02:22:10,003 INFO postgres.backup: Base backup completed size=42GB duration=22m14s
+2026-02-09 03:00:00,001 INFO postgres.stats: Connections active=9 idle=11 max=100 cache_hit_ratio=98.8%
+2026-02-09 04:00:00,001 INFO postgres.stats: Connections active=7 idle=13 max=100 cache_hit_ratio=99.2%
+2026-02-09 05:00:00,001 INFO postgres.stats: Connections active=6 idle=14 max=100 cache_hit_ratio=99.3%
+2026-02-09 06:00:00,001 INFO postgres.stats: Connections active=15 idle=5 max=100 cache_hit_ratio=98.5%
+2026-02-09 06:30:00,001 INFO postgres.replication: Replication slot active replica=db-replica-01 lag=4ms
+2026-02-09 07:00:00,001 INFO postgres.stats: Connections active=28 idle=12 max=100 cache_hit_ratio=97.9%
+2026-02-09 07:30:00,001 INFO postgres.stats: Connections active=44 idle=6 max=100 cache_hit_ratio=97.2%
+2026-02-09 07:45:12,881 WARNING postgres.connections: Connection count approaching limit active=71 max=100 threshold=70%
+2026-02-09 07:45:13,003 WARNING postgres.replication: Replication lag increasing replica=db-replica-01 lag=1240ms threshold=500ms
+2026-02-09 07:50:00,001 INFO postgres.stats: Connections active=78 idle=2 max=100 cache_hit_ratio=96.1%
+2026-02-09 07:55:22,441 ERROR postgres.connections: Max connections reached active=100 max=100 — new connections being refused
+2026-02-09 07:55:22,442 ERROR postgres.query: Query failed reason=connection_refused user=app_user database=production
+2026-02-09 07:55:22,881 ERROR postgres.query: Query failed reason=connection_refused user=app_user database=production
+2026-02-09 07:55:23,003 ERROR postgres.query: Query failed reason=connection_refused user=reporting_user database=production
+2026-02-09 07:55:23,110 CRITICAL postgres.connections: Database connection pool exhausted — service impact imminent
+2026-02-09 07:55:23,441 WARNING postgres.replication: Replication lag critical replica=db-replica-01 lag=8820ms
+2026-02-09 07:58:00,001 INFO postgres.pgbouncer: PgBouncer connection pooler applied — reducing direct connections
+2026-02-09 07:58:30,881 INFO postgres.stats: Connections active=62 idle=8 max=100 cache_hit_ratio=96.8%
+2026-02-09 08:00:00,001 INFO postgres.replication: Replication slot active replica=db-replica-01 lag=210ms
+2026-02-09 08:05:00,001 INFO postgres.stats: Connections active=48 idle=22 max=100 cache_hit_ratio=97.4%
+2026-02-09 08:10:00,001 INFO postgres.replication: Replication slot active replica=db-replica-01 lag=12ms
+2026-02-09 08:30:00,001 INFO postgres.stats: Connections active=41 idle=29 max=100 cache_hit_ratio=97.8%
+2026-02-09 09:00:00,001 INFO postgres.stats: Connections active=38 idle=32 max=100 cache_hit_ratio=98.1%
+2026-02-09 09:30:22,112 DEBUG postgres.query: Slow query detected duration=3410ms query=SELECT u.*, o.*, p.* FROM users u JOIN orders o ON u.id=o.user_id JOIN products p ON o.product_id=p.id WHERE o.created_at > NOW() - INTERVAL '30 days'
+2026-02-09 09:30:22,113 WARNING postgres.query: Query execution plan missing index — full table scan on orders rows_examined=2841992
+2026-02-09 09:30:22,441 WARNING postgres.performance: Recommend adding index on orders(created_at, user_id) estimated_improvement=94%
+2026-02-09 10:00:00,001 INFO postgres.stats: Connections active=35 idle=35 max=100 cache_hit_ratio=98.4%
+2026-02-09 10:30:00,001 INFO postgres.stats: Connections active=33 idle=37 max=100 cache_hit_ratio=98.6%
+2026-02-09 11:00:00,001 INFO postgres.stats: Connections active=30 idle=40 max=100 cache_hit_ratio=98.8%
+2026-02-09 11:14,441 ERROR postgres.disk: Disk usage critical mount=/var/lib/postgresql usage=91% threshold=85%
+2026-02-09 11:14,442 ERROR postgres.disk: Write-ahead log (WAL) accumulation detected wal_size=18GB
+2026-02-09 11:14,550 CRITICAL postgres.disk: Disk space critical — database writes may fail if not resolved mount=/var/lib/postgresql free=9GB
+2026-02-09 11:15,003 WARNING postgres.maintenance: Triggering emergency WAL archival and cleanup
+2026-02-09 11:18,441 INFO postgres.maintenance: WAL cleanup completed reclaimed=12GB disk_usage=74%
+2026-02-09 12:00:00,001 INFO postgres.stats: Connections active=28 idle=42 max=100 cache_hit_ratio=99.0%
+2026-02-09 12:00:00,881 INFO postgres.replication: Replication slot active replica=db-replica-01 lag=8ms

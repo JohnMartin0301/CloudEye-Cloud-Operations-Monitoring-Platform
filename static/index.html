@@ -34,6 +34,10 @@
         <span class="nav-label">Incidents</span>
         <span class="badge-open" id="incidentBadge" style="display:none">0</span>
       </a>
+      <a href="#automation" class="nav-item" data-section="automation">
+        <span class="nav-icon">⚙</span>
+        <span class="nav-label">Automation</span>
+      </a>
       <a href="#health" class="nav-item" data-section="health">
         <span class="nav-icon">◎</span>
         <span class="nav-label">System Health</span>
@@ -45,7 +49,7 @@
         <span class="dot dot--green"></span>
         <span class="status-text">Engine running</span>
       </div>
-      <div class="version">v0.4.0 — Phase 4</div>
+      <div class="version">© 2026 John Martin</div>
     </div>
   </aside>
 
@@ -64,6 +68,19 @@
       </div>
       <div class="topbar-right">
         <div class="last-updated" id="lastUpdated">—</div>
+        <select class="tz-select" id="tzSelect" title="Timezone">
+          <option value="Asia/Manila">PH — Manila</option>
+          <option value="Asia/Singapore">SG — Singapore</option>
+          <option value="Asia/Tokyo">JP — Tokyo</option>
+          <option value="Asia/Dubai">AE — Dubai</option>
+          <option value="Europe/London">UK — London</option>
+          <option value="Europe/Paris">EU — Paris</option>
+          <option value="America/New_York">US — New York</option>
+          <option value="America/Chicago">US — Chicago</option>
+          <option value="America/Los_Angeles">US — Los Angeles</option>
+          <option value="Australia/Sydney">AU — Australia</option>
+          <option value="UTC">UTC</option>
+        </select>
         <button class="btn btn--ghost btn--sm" id="checkAllBtn" title="Run checks now">
           <span class="btn-icon">↻</span> Refresh
         </button>
@@ -349,6 +366,83 @@
       </div>
 
     </section>
+
+    <!-- ── Section: Automation ── -->
+    <section class="section" id="section-automation" style="display:none">
+
+      <div class="summary-row">
+        <div class="stat-card">
+          <div class="stat-label">Total rules</div>
+          <div class="stat-value" id="autoStatTotal">—</div>
+        </div>
+        <div class="stat-card stat-card--up">
+          <div class="stat-label">Active rules</div>
+          <div class="stat-value" id="autoStatActive">—</div>
+        </div>
+        <div class="stat-card stat-card--degraded">
+          <div class="stat-label">Disabled rules</div>
+          <div class="stat-value" id="autoStatDisabled">—</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Events logged</div>
+          <div class="stat-value" id="autoStatEvents">—</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <span class="panel-title-label">Automation rules</span>
+            <span class="panel-count" id="rulesCount">0</span>
+          </div>
+          <button class="btn btn--primary btn--sm" id="addRuleBtn">+ Add rule</button>
+        </div>
+        <div class="table-wrap">
+          <table class="services-table">
+            <thead>
+              <tr>
+                <th>Rule</th>
+                <th>Metric</th>
+                <th>Threshold</th>
+                <th>Severity</th>
+                <th>Status</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="rulesBody">
+              <tr class="table-loading"><td colspan="6">Loading rules…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <span class="panel-title-label">Automation event log</span>
+          </div>
+          <button class="btn btn--ghost btn--sm" id="refreshEventsBtn">↻ Refresh</button>
+        </div>
+        <div class="table-wrap">
+          <table class="services-table">
+            <thead>
+              <tr>
+                <th>Time</th>
+                <th>Rule</th>
+                <th>Metric</th>
+                <th>Value</th>
+                <th>Action taken</th>
+              </tr>
+            </thead>
+            <tbody id="eventsBody">
+              <tr class="table-loading"><td colspan="5">No events yet.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </section>
+
     <!-- ── Section: System Health ── -->
     <section class="section section--health" id="section-health" style="display:none">
 
@@ -540,6 +634,48 @@
       <div class="modal-footer">
         <button class="btn btn--ghost" id="incModalCancelBtn">Cancel</button>
         <button class="btn btn--primary" id="incModalSaveBtn">Create incident</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Modal: Add / Edit Rule ── -->
+  <div class="modal-overlay" id="ruleModalOverlay" style="display:none">
+    <div class="modal" role="dialog" aria-modal="true">
+      <div class="modal-header">
+        <span class="modal-title" id="ruleModalTitle">Add rule</span>
+        <button class="modal-close" id="ruleModalClose">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="field">
+          <label class="label" for="ruleFieldName">Rule name</label>
+          <input class="input" type="text" id="ruleFieldName" placeholder="High CPU Usage" autocomplete="off" />
+        </div>
+        <div class="field">
+          <label class="label" for="ruleFieldMetric">Metric</label>
+          <select class="input" id="ruleFieldMetric">
+            <option value="cpu_percent">CPU Usage (%)</option>
+            <option value="memory_percent">Memory Usage (%)</option>
+            <option value="disk_percent">Disk Usage (%)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="label" for="ruleFieldThreshold">Threshold (%)</label>
+          <input class="input" type="number" id="ruleFieldThreshold" min="1" max="100" placeholder="90" />
+        </div>
+        <div class="field">
+          <label class="label" for="ruleFieldSeverity">Incident severity</label>
+          <select class="input" id="ruleFieldSeverity">
+            <option value="Low">Low</option>
+            <option value="Medium">Medium</option>
+            <option value="High" selected>High</option>
+            <option value="Critical">Critical</option>
+          </select>
+        </div>
+        <div class="modal-error" id="ruleModalError" style="display:none"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn--ghost" id="ruleModalCancelBtn">Cancel</button>
+        <button class="btn btn--primary" id="ruleModalSaveBtn">Save rule</button>
       </div>
     </div>
   </div>

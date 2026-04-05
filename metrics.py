@@ -89,3 +89,5 @@ def run_metrics_collection():
     """Called by the scheduler every 30 seconds."""
     m = collect_metrics()
     save_metrics(m)
+    from automation import run_automation_rules
+    run_automation_rules(m)

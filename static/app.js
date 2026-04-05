@@ -1,9 +1,10 @@
 /* ─────────────────────────────────────────────
    CloudEye Platform — Frontend Logic
-   Phase 1: Service Monitor
 ───────────────────────────────────────────── */
 
-// ── State ──────────────────────────────────────
+/* ----- Phase 1: Service Monitor ----- */
+
+// ── State ──
 const state = {
   services:        [],
   filter:          "all",
@@ -15,7 +16,43 @@ const state = {
 
 const POLL_INTERVAL_MS = 30_000; // match backend scheduler
 
-// ── DOM refs ───────────────────────────────────
+// ── Timezone ──
+let userTimezone = localStorage.getItem("cloudeye_tz") || "Asia/Manila";
+
+function fmtWithTz(isoStr, opts = {}) {
+  if (!isoStr) return "—";
+  try {
+    const clean = isoStr.includes("T") || isoStr.endsWith("Z")
+      ? isoStr
+      : isoStr + "Z";
+    return new Date(clean).toLocaleString("en-PH", {
+      timeZone: userTimezone,
+      ...opts,
+    });
+  } catch { return isoStr; }
+}
+
+function fmtTimeOnly(isoStr) {
+  return fmtWithTz(isoStr, {
+    hour: "2-digit", minute: "2-digit", second: "2-digit"
+  });
+}
+
+function fmtDateShort(isoStr) {
+  return fmtWithTz(isoStr, {
+    month: "short", day: "numeric",
+    hour: "2-digit", minute: "2-digit"
+  });
+}
+
+function nowStr() {
+  return new Date().toLocaleTimeString("en-PH", {
+    timeZone: userTimezone,
+    hour: "2-digit", minute: "2-digit", second: "2-digit"
+  });
+}
+
+// ── DOM refs ──
 const $ = id => document.getElementById(id);
 const servicesBody   = $("servicesBody");
 const historyPanel   = $("historyPanel");
@@ -28,7 +65,7 @@ const modalError     = $("modalError");
 const checkAllBtn    = $("checkAllBtn");
 const lastUpdated    = $("lastUpdated");
 
-// ── API helpers ────────────────────────────────
+// ── API helpers ──
 async function api(path, options = {}) {
   const res = await fetch(path, {
     headers: { "Content-Type": "application/json" },
@@ -41,13 +78,9 @@ async function api(path, options = {}) {
   return res.json();
 }
 
-// ── Formatters ─────────────────────────────────
+// ── Formatters ──
 function fmtTime(isoStr) {
-  if (!isoStr) return "—";
-  try {
-    const d = new Date(isoStr + "Z");
-    return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
-  } catch { return isoStr; }
+  return fmtTimeOnly(isoStr);
 }
 
 function fmtMs(ms) {
@@ -63,13 +96,7 @@ function statusBadge(status) {
   return `<span class="status-badge status-badge--${s}">${dot}${s}</span>`;
 }
 
-function nowStr() {
-  return new Date().toLocaleTimeString([], {
-    hour: "2-digit", minute: "2-digit", second: "2-digit"
-  });
-}
-
-// ── Render ─────────────────────────────────────
+// ── Render ──
 function renderSummary(services) {
   const total    = services.length;
   const up       = services.filter(s => s.current_status === "UP").length;
@@ -137,7 +164,7 @@ function escHtml(s) {
     .replace(/"/g, "&quot;");
 }
 
-// ── Data loading ───────────────────────────────
+// ── Data loading ──
 async function loadServices() {
   try {
     const [services] = await Promise.all([api("/api/services")]);
@@ -189,7 +216,7 @@ async function loadHistory(serviceId) {
   }
 }
 
-// ── Check all / manual ping ────────────────────
+// ── Check all / manual ping ──
 checkAllBtn.addEventListener("click", async () => {
   const icon = checkAllBtn.querySelector(".btn-icon");
   icon.classList.add("spinning");
@@ -218,7 +245,7 @@ window.pingService = async function(id) {
   } catch (e) { console.error(e); }
 };
 
-// ── Filters ────────────────────────────────────
+// ── Filters ──
 document.querySelectorAll(".filter-btn").forEach(btn => {
   btn.addEventListener("click", () => {
     document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
@@ -228,13 +255,13 @@ document.querySelectorAll(".filter-btn").forEach(btn => {
   });
 });
 
-// ── History panel close ────────────────────────
+// ── History panel close ──
 $("closeHistoryBtn").addEventListener("click", () => {
   historyPanel.style.display = "none";
   state.activeHistoryId = null;
 });
 
-// ── Add/Edit modal ─────────────────────────────
+// ── Add/Edit modal ──
 function openModal(svc = null) {
   state.editingId = svc ? svc.id : null;
   $("modalTitle").textContent = svc ? "Edit service" : "Add service";
@@ -301,7 +328,7 @@ function showModalError(msg) {
   modalError.style.display = "block";
 }
 
-// ── Delete modal ───────────────────────────────
+// ── Delete modal ──
 window.openDelete = function(id, name) {
   state.deletingId = id;
   $("deleteServiceName").textContent = name;
@@ -332,7 +359,7 @@ $("deleteConfirmBtn").addEventListener("click", async () => {
   }
 });
 
-// ── Sidebar navigation ─────────────────────────
+// ── Sidebar navigation ──
 document.querySelectorAll(".nav-item:not(.disabled)").forEach(item => {
   item.addEventListener("click", e => {
     e.preventDefault();
@@ -347,7 +374,7 @@ document.querySelectorAll(".nav-item:not(.disabled)").forEach(item => {
   });
 });
 
-// ── Mobile sidebar toggle ──────────────────────
+// ── Mobile sidebar toggle ──
 const mobileMenuBtn = $("mobileMenuBtn");
 const sidebar = $("sidebar");
 
@@ -361,7 +388,7 @@ document.addEventListener("click", e => {
   }
 });
 
-// ── Keyboard shortcuts ─────────────────────────
+// ── Keyboard shortcuts ──
 document.addEventListener("keydown", e => {
   if (e.key === "Escape") {
     closeModal();
@@ -369,7 +396,7 @@ document.addEventListener("keydown", e => {
   }
 });
 
-// ── Auto-polling ───────────────────────────────
+// ── Auto-polling ──
 function startPolling() {
   state.polling = setInterval(async () => {
     await loadServices();
@@ -379,16 +406,14 @@ function startPolling() {
   }, POLL_INTERVAL_MS);
 }
 
-// ── Init ───────────────────────────────────────
+// ── Init ──
 (async function init() {
   await loadServices();
   startPolling();
 })();
 
 
-/* ──────────────────────────────────────────────
-   Phase 2 — Log Analyzer
-────────────────────────────────────────────── */
+/* ----- Phase 2 — Log Analyzer ----- */
 
 const logState = {
   file:          null,
@@ -396,7 +421,7 @@ const logState = {
   lineFilter:    "ERROR",
 };
 
-// ── DOM refs ────────────────────────────────────
+// ── DOM refs ──
 const logDropZone      = $("logDropZone");
 const logFileInput     = $("logFileInput");
 const uploadMeta       = $("uploadMeta");
@@ -412,7 +437,7 @@ const errorLineCount   = $("errorLineCount");
 const resultFilename   = $("resultFilename");
 const logHistoryBody   = $("logHistoryBody");
 
-// ── File selection ──────────────────────────────
+// ── File selection ──
 function setLogFile(file) {
   if (!file) return;
   if (file.size > 10 * 1024 * 1024) {
@@ -445,7 +470,7 @@ logDropZone.addEventListener("drop", e => {
   if (file) setLogFile(file);
 });
 
-// ── Analyze ─────────────────────────────────────
+// ── Analyze ──
 analyzeBtn.addEventListener("click", async () => {
   if (!logState.file) return;
 
@@ -474,7 +499,7 @@ analyzeBtn.addEventListener("click", async () => {
   }
 });
 
-// ── Render result ───────────────────────────────
+// ── Render result ──
 function renderLogResult(r, filename) {
   resultFilename.textContent = filename;
 
@@ -502,12 +527,8 @@ function renderLogResult(r, filename) {
     </div>`;
 
   // Meta row
-  const from = r.time_range?.from
-    ? new Date(r.time_range.from).toLocaleString()
-    : "—";
-  const to = r.time_range?.to
-    ? new Date(r.time_range.to).toLocaleString()
-    : "—";
+  const from = r.time_range?.from ? fmtDateShort(r.time_range.from) : "—";
+  const to   = r.time_range?.to   ? fmtDateShort(r.time_range.to)   : "—";
 
   logMetaRow.innerHTML = `
     <div class="log-meta-item">
@@ -606,7 +627,7 @@ $("clearResultBtn").addEventListener("click", () => {
   analyzeBtn.disabled = true;
 });
 
-// ── Upload history ───────────────────────────────
+// ── Upload history ──
 async function loadLogHistory() {
   try {
     const rows = await api("/api/logs/history?limit=15");
@@ -617,7 +638,7 @@ async function loadLogHistory() {
     logHistoryBody.innerHTML = rows.map(r => `
       <tr>
         <td><div class="log-history-filename">${escHtml(r.filename)}</div></td>
-        <td><div class="log-history-time">${r.uploaded_at}</div></td>
+        <td><div class="log-history-time">${fmtDatetime(r.uploaded_at)}</div></td>
         <td style="font-family:var(--font-mono);font-size:12px">${r.total_lines?.toLocaleString() ?? "—"}</td>
         <td style="font-family:var(--font-mono);font-size:12px;color:var(--down)">${r.count_error ?? 0}</td>
         <td style="font-family:var(--font-mono);font-size:12px;color:var(--degraded)">${r.count_warning ?? 0}</td>
@@ -656,18 +677,26 @@ window.deleteLogUpload = async function(id) {
 $("refreshHistoryBtn").addEventListener("click", loadLogHistory);
 
 // Load history when Log Analyzer tab is opened
-document.querySelectorAll(".nav-item").forEach(item => {
-  item.addEventListener("click", () => {
-    if (item.dataset.section === "logs") {
-      loadLogHistory();
+const refreshHistoryBtn = $("refreshHistoryBtn");
+if (refreshHistoryBtn) {
+  refreshHistoryBtn.addEventListener("click", async () => {
+    refreshHistoryBtn.disabled = true;
+    refreshHistoryBtn.innerHTML = '<span class="btn-icon spinning">↻</span> Refresh';
+    try {
+      await loadLogHistory();
+    } catch(e) {
+      console.error("Refresh history failed:", e);
+    } finally {
+      setTimeout(() => {
+        refreshHistoryBtn.innerHTML = '↻ Refresh';
+        refreshHistoryBtn.disabled = false;
+      }, 600);
     }
   });
-});
+}
 
 
-/* ──────────────────────────────────────────────
-   Phase 3 — Incident Tracker
-────────────────────────────────────────────── */
+/* ----- Phase 3 — Incident Tracker ----- */
 
 const incState = {
   incidents:     [],
@@ -675,13 +704,13 @@ const incState = {
   activeId:      null,
 };
 
-// ── DOM refs ────────────────────────────────────
+// ── DOM refs ──
 const incidentsBody      = $("incidentsBody");
 const incidentDetailPanel= $("incidentDetailPanel");
 const incidentBadge      = $("incidentBadge");
 const incidentCount      = $("incidentCount");
 
-// ── Formatters ──────────────────────────────────
+// ── Formatters ──
 function severityBadge(s) {
   return `<span class="severity-badge severity-badge--${s}">${s}</span>`;
 }
@@ -691,13 +720,7 @@ function incStatusBadge(s) {
 }
 
 function fmtDatetime(iso) {
-  if (!iso) return "—";
-  try {
-    return new Date(iso + (iso.includes("T") ? "" : " ") + (iso.includes("Z") ? "" : "")).toLocaleString([], {
-      month: "short", day: "numeric",
-      hour: "2-digit", minute: "2-digit"
-    });
-  } catch { return iso; }
+  return fmtDateShort(iso);
 }
 
 function timelineDotClass(event) {
@@ -708,7 +731,7 @@ function timelineDotClass(event) {
   return "timeline-dot--note";
 }
 
-// ── Load incidents ───────────────────────────────
+// ── Load incidents ──
 async function loadIncidents() {
   try {
     const [incidents, summary] = await Promise.all([
@@ -778,7 +801,7 @@ function renderIncidents() {
   });
 }
 
-// ── Incident detail ──────────────────────────────
+// ── Incident detail ──
 async function loadIncidentDetail(id) {
   incState.activeId = id;
   incidentDetailPanel.style.display = "";
@@ -886,7 +909,7 @@ $("closeDetailBtn").addEventListener("click", () => {
   incState.activeId = null;
 });
 
-// ── Incident filter ──────────────────────────────
+// ── Incident filter ──
 document.querySelectorAll("[data-if]").forEach(btn => {
   btn.addEventListener("click", () => {
     document.querySelectorAll("[data-if]").forEach(b => b.classList.remove("active"));
@@ -896,7 +919,7 @@ document.querySelectorAll("[data-if]").forEach(btn => {
   });
 });
 
-// ── Create incident modal ────────────────────────
+// ── Create incident modal ──
 const incidentModalOverlay = $("incidentModalOverlay");
 
 async function openCreateIncidentModal() {
@@ -950,11 +973,14 @@ $("incModalSaveBtn").addEventListener("click", async () => {
   }
 });
 
-// ── Load on tab open + polling ───────────────────
+// ── Load on tab open + polling ──
 document.querySelectorAll(".nav-item").forEach(item => {
   item.addEventListener("click", () => {
     if (item.dataset.section === "incidents") {
       loadIncidents();
+    }
+    if (item.dataset.section === "automation") {
+      loadAutomation();
     }
   });
 });
@@ -975,13 +1001,11 @@ loadServices = async function() {
 };
 
 
-/* ──────────────────────────────────────────────
-   Phase 4 — System Health Dashboard
-────────────────────────────────────────────── */
+/* ----- Phase 4 — System Health Dashboard ----- */
 
 const healthCharts = {};
 
-// ── Chart defaults ───────────────────────────────
+// ── Chart defaults ──
 function makeGradient(ctx, color) {
   const gradient = ctx.createLinearGradient(0, 0, 0, 200);
   gradient.addColorStop(0, color + "55");
@@ -1062,7 +1086,7 @@ function buildNetChartConfig(label, color, data, labels) {
   return cfg;
 }
 
-// ── Init charts ──────────────────────────────────
+// ── Init charts ──
 function initHealthCharts() {
   if (healthCharts.cpu) {
     Object.values(healthCharts).forEach(c => c.destroy());
@@ -1077,7 +1101,7 @@ function initHealthCharts() {
   healthCharts.net  = new Chart($("chartNet"),  buildNetChartConfig("Net sent MB","#a78bfa", [], []));
 }
 
-// ── Update bar ───────────────────────────────────
+// ── Update bar ──
 function updateBar(barEl, cardEl, pct, warnAt = 80, dangerAt = 90) {
   barEl.style.width = Math.min(pct, 100) + "%";
   barEl.classList.remove("health-bar--warn", "health-bar--danger");
@@ -1093,7 +1117,7 @@ function fmtMB(mb) {
   return mb.toFixed(0) + " MB";
 }
 
-// ── Badge helper ─────────────────────────────────
+// ── Badge helper ──
 function updateTileBadge(badgeEl, tileEl, pct, warnAt, dangerAt) {
   badgeEl.className = "health-tile-badge";
   tileEl.classList.remove("tile--warn", "tile--danger");
@@ -1136,7 +1160,7 @@ function updateOverallStatus(cpuPct, memPct, diskPct) {
   }
 }
 
-// ── Render current snapshot ──────────────────────
+// ── Render current snapshot ──
 function renderHealthCurrent(m) {
   // CPU — warn: 80%, critical: 90%
   $("hCpu").textContent = m.cpu_percent.toFixed(1);
@@ -1181,7 +1205,7 @@ function renderHealthCurrent(m) {
   updateOverallStatus(m.cpu_percent, m.memory_percent, m.disk_percent);
 }
 
-// ── Render history charts + table ───────────────
+// ── Render history charts + table ──
 function renderHealthHistory(rows) {
   if (!rows.length) return;
 
@@ -1206,13 +1230,9 @@ function renderHealthHistory(rows) {
   update(healthCharts.mem,  rows.map(r => r.memory_percent));
   update(healthCharts.disk, rows.map(r => r.disk_percent));
   update(healthCharts.net,  rows.map(r => r.net_bytes_sent_mb));
-
-
-
-
 }
 
-// ── Load health data ─────────────────────────────
+// ── Load health data ──
 async function loadHealth() {
   try {
     const [current, history] = await Promise.all([
@@ -1226,7 +1246,7 @@ async function loadHealth() {
   }
 }
 
-// ── Auto-refresh health every 30s when tab is active ────
+// ── Auto-refresh health every 30s when tab is active ──
 let healthAutoRefresh = null;
 
 function startHealthAutoRefresh() {
@@ -1243,7 +1263,7 @@ function stopHealthAutoRefresh() {
   }
 }
 
-// ── Init on tab open ─────────────────────────────
+// ── Init on tab open ──
 document.querySelectorAll(".nav-item").forEach(item => {
   item.addEventListener("click", () => {
     if (item.dataset.section === "health") {
@@ -1255,3 +1275,224 @@ document.querySelectorAll(".nav-item").forEach(item => {
     }
   });
 });
+
+/* ----- Phase 5 — Automation Rules ----- */
+
+const autoState = { rules: [], editingRuleId: null };
+
+const METRIC_LABELS = {
+  cpu_percent:    "CPU Usage",
+  memory_percent: "Memory Usage",
+  disk_percent:   "Disk Usage",
+};
+
+const METRIC_BADGE_CLASS = {
+  cpu_percent:    "metric-badge--cpu",
+  memory_percent: "metric-badge--memory",
+  disk_percent:   "metric-badge--disk",
+};
+
+function metricBadge(metric) {
+  const label = METRIC_LABELS[metric] || metric;
+  const cls   = METRIC_BADGE_CLASS[metric] || "";
+  return `<span class="metric-badge ${cls}">${label}</span>`;
+}
+
+function toggleHtml(enabled, ruleId) {
+  const on = enabled ? "on" : "";
+  return `
+    <div class="rule-toggle" onclick="toggleRule(${ruleId})">
+      <div class="toggle-track ${on}">
+        <div class="toggle-thumb"></div>
+      </div>
+      <span class="rule-status-label ${on}">${enabled ? "Enabled" : "Disabled"}</span>
+    </div>`;
+}
+
+async function loadAutomation() {
+  try {
+    const [rules, events] = await Promise.all([
+      api("/api/automation/rules"),
+      api("/api/automation/events?limit=20"),
+    ]);
+    autoState.rules = rules;
+
+    const total    = rules.length;
+    const active   = rules.filter(r => r.enabled).length;
+    const disabled = total - active;
+    $("autoStatTotal").textContent    = total;
+    $("autoStatActive").textContent   = active;
+    $("autoStatDisabled").textContent = disabled;
+    $("autoStatEvents").textContent   = events.length;
+    $("rulesCount").textContent       = total;
+
+    renderRules(rules);
+    renderEvents(events);
+  } catch (e) { console.error("Automation load failed:", e); }
+}
+
+function renderRules(rules) {
+  const body = $("rulesBody");
+  if (!rules.length) {
+    body.innerHTML = `<tr class="table-loading"><td colspan="6">No rules configured.</td></tr>`;
+    return;
+  }
+  body.innerHTML = rules.map(r => `
+    <tr>
+      <td><div class="svc-name">${escHtml(r.name)}</div></td>
+      <td>${metricBadge(r.metric)}</td>
+      <td><span class="threshold-val">≥ ${r.threshold}<span>%</span></span></td>
+      <td>${severityBadge(r.severity)}</td>
+      <td>${toggleHtml(r.enabled, r.id)}</td>
+      <td>
+        <div class="row-actions">
+          <button class="action-btn" onclick="openEditRule(${r.id})">Edit</button>
+          <button class="action-btn action-btn--danger" onclick="deleteRule(${r.id})">Del</button>
+        </div>
+      </td>
+    </tr>`).join("");
+}
+
+function renderEvents(events) {
+  const body = $("eventsBody");
+  if (!events.length) {
+    body.innerHTML = `<tr class="table-loading"><td colspan="5">No events yet. Events appear when rules trigger.</td></tr>`;
+    return;
+  }
+  body.innerHTML = events.map(e => `
+    <tr>
+      <td style="font-family:var(--font-mono);font-size:11px;color:var(--text-dim)">${fmtDatetime(e.triggered_at)}</td>
+      <td><div class="event-rule-name">${escHtml(e.rule_name)}</div></td>
+      <td>${metricBadge(e.metric)}</td>
+      <td style="font-family:var(--font-mono);font-size:12px;color:var(--down)">${e.value.toFixed(1)}% <span style="color:var(--text-dim)">/ ${e.threshold}%</span></td>
+      <td><span class="event-action">${escHtml(e.action_taken)}</span></td>
+    </tr>`).join("");
+}
+
+window.toggleRule = async function(id) {
+  try {
+    await api(`/api/automation/rules/${id}/toggle`, { method: "POST" });
+    await loadAutomation();
+  } catch (e) { console.error(e); }
+};
+
+window.deleteRule = async function(id) {
+  try {
+    await api(`/api/automation/rules/${id}`, { method: "DELETE" });
+    await loadAutomation();
+  } catch (e) { console.error(e); }
+};
+
+const ruleModalOverlay = $("ruleModalOverlay");
+
+function openAddRule() {
+  autoState.editingRuleId = null;
+  $("ruleModalTitle").textContent   = "Add rule";
+  $("ruleFieldName").value          = "";
+  $("ruleFieldMetric").value        = "cpu_percent";
+  $("ruleFieldThreshold").value     = "90";
+  $("ruleFieldSeverity").value      = "High";
+  $("ruleModalSaveBtn").textContent = "Save rule";
+  $("ruleModalError").style.display = "none";
+  ruleModalOverlay.style.display    = "flex";
+  $("ruleFieldName").focus();
+}
+
+window.openEditRule = function(id) {
+  const rule = autoState.rules.find(r => r.id === id);
+  if (!rule) return;
+  autoState.editingRuleId = id;
+  $("ruleModalTitle").textContent   = "Edit rule";
+  $("ruleFieldName").value          = rule.name;
+  $("ruleFieldMetric").value        = rule.metric;
+  $("ruleFieldThreshold").value     = rule.threshold;
+  $("ruleFieldSeverity").value      = rule.severity;
+  $("ruleModalSaveBtn").textContent = "Update rule";
+  $("ruleModalError").style.display = "none";
+  ruleModalOverlay.style.display    = "flex";
+  $("ruleFieldName").focus();
+};
+
+function closeRuleModal() {
+  ruleModalOverlay.style.display = "none";
+  autoState.editingRuleId = null;
+}
+
+$("addRuleBtn").addEventListener("click", openAddRule);
+$("ruleModalClose").addEventListener("click", closeRuleModal);
+$("ruleModalCancelBtn").addEventListener("click", closeRuleModal);
+ruleModalOverlay.addEventListener("click", e => {
+  if (e.target === ruleModalOverlay) closeRuleModal();
+});
+
+$("ruleModalSaveBtn").addEventListener("click", async () => {
+  const name      = $("ruleFieldName").value.trim();
+  const metric    = $("ruleFieldMetric").value;
+  const threshold = parseFloat($("ruleFieldThreshold").value);
+  const severity  = $("ruleFieldSeverity").value;
+
+  if (!name) {
+    $("ruleModalError").textContent = "Rule name is required.";
+    $("ruleModalError").style.display = "block";
+    return;
+  }
+  if (isNaN(threshold) || threshold < 1 || threshold > 100) {
+    $("ruleModalError").textContent = "Threshold must be between 1 and 100.";
+    $("ruleModalError").style.display = "block";
+    return;
+  }
+
+  const body = JSON.stringify({ name, metric, threshold, severity });
+  try {
+    if (autoState.editingRuleId) {
+      await api(`/api/automation/rules/${autoState.editingRuleId}`, { method: "PATCH", body });
+    } else {
+      await api("/api/automation/rules", { method: "POST", body });
+    }
+    closeRuleModal();
+    await loadAutomation();
+  } catch (e) {
+    $("ruleModalError").textContent = e.message;
+    $("ruleModalError").style.display = "block";
+  }
+});
+
+const refreshEventsBtn = $("refreshEventsBtn");
+if (refreshEventsBtn) {
+  refreshEventsBtn.addEventListener("click", async () => {
+    refreshEventsBtn.disabled = true;
+    refreshEventsBtn.innerHTML = '<span class="btn-icon spinning">↻</span> Refresh';
+    try {
+      await loadAutomation();
+    } catch(e) {
+      console.error("Refresh events failed:", e);
+    } finally {
+      setTimeout(() => {
+        refreshEventsBtn.innerHTML = '↻ Refresh';
+        refreshEventsBtn.disabled = false;
+      }, 600);
+    }
+  });
+}
+
+/* ── Timezone selector ── */
+(function initTzSelector() {
+  const select = $("tzSelect");
+  if (!select) return;
+
+  // Set saved or default timezone
+  select.value = userTimezone;
+
+  select.addEventListener("change", () => {
+    userTimezone = select.value;
+    localStorage.setItem("cloudeye_tz", userTimezone);
+
+    // Refresh all visible data so timestamps update immediately
+    const activeSection = document.querySelector(".nav-item.active")?.dataset.section;
+    if (activeSection === "services")    loadServices();
+    if (activeSection === "incidents")   loadIncidents();
+    if (activeSection === "logs")        loadLogHistory();
+    if (activeSection === "automation")  loadAutomation();
+    if (activeSection === "health")      loadHealth();
+  });
+})();

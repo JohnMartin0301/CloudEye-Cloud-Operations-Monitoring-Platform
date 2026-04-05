@@ -1,68 +1,106 @@
 import requests
 import time
+import random
+from datetime import datetime
 from database import get_connection
 
 
-TIMEOUT_SECONDS = 5
+TIMEOUT_SECONDS = 3
+
+# ── Simulation state (in-memory) ─────────────────
+_sim_status      = {}   # service_id → current simulated status code
+_sim_last_change = {}   # service_id → datetime of last state change
+
+
+def _simulate_status(service_id: int, current_mock_status: str) -> str:
+    """
+    Subtle random failure simulation for mock services.
+    - 3% chance a healthy service fails per cycle
+    - Minimum 2 min healthy before it can fail
+    - Minimum 1 min down before it can recover
+    - Forced recovery after 5 min maximum downtime
+    """
+    now = datetime.now()
+
+    if service_id not in _sim_status:
+        if current_mock_status == "UP":
+            _sim_status[service_id] = 200
+        elif current_mock_status == "DEGRADED":
+            _sim_status[service_id] = 503
+        else:  # DOWN
+            _sim_status[service_id] = 500
+        _sim_last_change[service_id] = now
+
+    code             = _sim_status[service_id]
+    last_change      = _sim_last_change[service_id]
+    seconds_in_state = (now - last_change).total_seconds()
+
+    if code == 200:
+        if seconds_in_state >= 120 and random.random() < 0.03:
+            _sim_status[service_id]      = random.choice([500, 503, 504])
+            _sim_last_change[service_id] = now
+    else:
+        if seconds_in_state >= 60:
+            if seconds_in_state >= 300 or random.random() < 0.30:
+                _sim_status[service_id]      = 200
+                _sim_last_change[service_id] = now
+
+    final_code = _sim_status[service_id]
+    if final_code == 200:
+        return "UP"
+    elif final_code == 503:
+        return "DEGRADED"
+    return "DOWN"
 
 
 def check_service(service: dict) -> dict:
-    """
-    Ping a service and return status info.
-    If use_mock is set, skip the real HTTP call and return simulated data.
-    """
-    service_id   = service["id"]
-    url          = service["url"]
-    use_mock     = bool(service["use_mock"])
-    mock_status  = service["mock_status"]
+    service_id  = service["id"]
+    url         = service["url"]
+    use_mock    = bool(service["use_mock"])
+    mock_status = service["mock_status"]
 
     if use_mock:
+        simulated = _simulate_status(service_id, mock_status)
         return {
-            "service_id":      service_id,
-            "status":          mock_status,
-            "response_time_ms": round(20 + (service_id * 7 % 80), 1),
-            "status_code":     200 if mock_status == "UP" else 503,
-            "error_message":   None if mock_status == "UP" else "Simulated failure",
+            "service_id":       service_id,
+            "status":           simulated,
+            "response_time_ms": round(10 + random.uniform(5, 60), 1),
+            "status_code":      200 if simulated == "UP" else (503 if simulated == "DEGRADED" else 500),
+            "error_message":    None if simulated == "UP" else "Simulated failure",
         }
 
     start = time.time()
     try:
-        resp = requests.get(url, timeout=TIMEOUT_SECONDS)
+        resp    = requests.get(url, timeout=TIMEOUT_SECONDS)
         elapsed = round((time.time() - start) * 1000, 1)
-        status = "UP" if resp.status_code < 400 else "DEGRADED"
+        status  = "UP" if resp.status_code < 400 else "DEGRADED"
         return {
-            "service_id":      service_id,
-            "status":          status,
+            "service_id":       service_id,
+            "status":           status,
             "response_time_ms": elapsed,
-            "status_code":     resp.status_code,
-            "error_message":   None,
+            "status_code":      resp.status_code,
+            "error_message":    None,
         }
     except requests.exceptions.ConnectionError:
         elapsed = round((time.time() - start) * 1000, 1)
         return {
-            "service_id":      service_id,
-            "status":          "DOWN",
-            "response_time_ms": elapsed,
-            "status_code":     None,
-            "error_message":   "Connection refused",
+            "service_id": service_id, "status": "DOWN",
+            "response_time_ms": elapsed, "status_code": None,
+            "error_message": "Connection refused",
         }
     except requests.exceptions.Timeout:
         elapsed = round((time.time() - start) * 1000, 1)
         return {
-            "service_id":      service_id,
-            "status":          "DOWN",
-            "response_time_ms": elapsed,
-            "status_code":     None,
-            "error_message":   "Request timed out",
+            "service_id": service_id, "status": "DOWN",
+            "response_time_ms": elapsed, "status_code": None,
+            "error_message": "Request timed out",
         }
     except Exception as e:
         elapsed = round((time.time() - start) * 1000, 1)
         return {
-            "service_id":      service_id,
-            "status":          "DOWN",
-            "response_time_ms": elapsed,
-            "status_code":     None,
-            "error_message":   str(e)[:200],
+            "service_id": service_id, "status": "DOWN",
+            "response_time_ms": elapsed, "status_code": None,
+            "error_message": str(e)[:200],
         }
 
 
@@ -74,15 +112,9 @@ def save_check_result(result: dict):
             (service_id, status, response_time_ms, status_code, error_message)
         VALUES (?, ?, ?, ?, ?)
         """,
-        (
-            result["service_id"],
-            result["status"],
-            result["response_time_ms"],
-            result["status_code"],
-            result["error_message"],
-        ),
+        (result["service_id"], result["status"], result["response_time_ms"],
+         result["status_code"], result["error_message"]),
     )
-    # Keep only last 200 records per service to avoid DB bloat
     conn.execute(
         """
         DELETE FROM service_checks
@@ -110,7 +142,7 @@ def get_severity(status: str, error_message) -> str:
 
 
 def generate_incident_number(conn) -> str:
-    row = conn.execute("SELECT COUNT(*) FROM incidents").fetchone()
+    row   = conn.execute("SELECT COUNT(*) FROM incidents").fetchone()
     count = row[0] + 1
     return f"INC-{count:04d}"
 
@@ -173,13 +205,12 @@ def handle_incidents(result: dict, service: dict):
 
 
 def run_all_checks():
-    """Called by the scheduler every N seconds."""
-    conn = get_connection()
+    conn     = get_connection()
     services = conn.execute("SELECT * FROM services").fetchall()
     conn.close()
 
     for svc in services:
         svc_dict = dict(svc)
-        result = check_service(svc_dict)
+        result   = check_service(svc_dict)
         save_check_result(result)
         handle_incidents(result, svc_dict)
