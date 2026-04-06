@@ -93,7 +93,7 @@ SQLite Database (cloudeye.db)
 
 | Layer | Technology |
 |---|---|
-| Backend | Python 3.12, FastAPI |
+| Backend | Python 3.13.2, FastAPI |
 | Scheduler | APScheduler |
 | Metrics | psutil |
 | Database | SQLite |
