@@ -57,7 +57,7 @@ Built as a portfolio project demonstrating real-world DevOps and cloud engineeri
 
 ### Log Analyzer
 ![Log Analyzer](assets/screenshots/4_log_analyzer.png)
-(assets/screenshots/5_log_analyzer.png)
+![Log Analyzer](assets/screenshots/5_log_analyzer.png)
 
 ### Incidents
 ![Incidents](assets/screenshots/6_incidents.png)
