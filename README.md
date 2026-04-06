@@ -1,4 +1,4 @@
-# CloudEye — Cloud Operations Monitoring Platform
+# 👁️ CloudEye — Cloud Operations Monitoring Platform
 
 A full-stack cloud operations platform that monitors services, analyzes logs, tracks incidents, displays system health metrics, and automates responses to infrastructure events.
 
@@ -6,23 +6,23 @@ Built as a portfolio project demonstrating real-world DevOps and cloud engineeri
 
 ---
 
-## Features
+## ✨ Features
 
-### Service Monitor
+### 🔍 Service Monitor
 - Real-time HTTP health checks against live endpoints
 - Mock service simulation with realistic random failure patterns
 - Auto-refresh every 30 seconds with manual trigger
 - Check history with visual timeline per service
 - Filter by status: All / Up / Down / Degraded
 
-### Log Analyzer
+### 📋 Log Analyzer
 - Upload and parse Python logging format log files (up to 10 MB)
 - Automatic classification of errors into 10 known patterns
 - Summary stats: ERROR, CRITICAL, WARNING, INFO, DEBUG counts
 - Top issues ranked by frequency with bar chart visualization
 - Upload history with ability to re-open past analyses
 
-### Incident Tracker
+### 🚨 Incident Tracker
 - Auto-creates incidents when services go DOWN or DEGRADED
 - Auto-resolves incidents when services recover
 - Full `Open → Acknowledged → Resolved` workflow
@@ -31,14 +31,14 @@ Built as a portfolio project demonstrating real-world DevOps and cloud engineeri
 - Manual incident creation for engineer-detected issues
 - Open incident count badge on sidebar nav
 
-### System Health Dashboard
+### 💻 System Health Dashboard
 - Live CPU, memory, disk, and network I/O metrics via `psutil`
 - Color-coded health tiles: Normal / Moderate / High / Critical
 - Trend sparkline charts per metric (last 30 minutes)
 - Auto-refreshes every 30 seconds when tab is active
 - Overall system status indicator
 
-### Automation Rules Engine
+### ⚙️ Automation Rules Engine
 - Define threshold-based rules (e.g. CPU ≥ 90% → create incident)
 - Supports CPU, memory, and disk metrics
 - Per-rule severity, enable/disable toggle
@@ -47,7 +47,24 @@ Built as a portfolio project demonstrating real-world DevOps and cloud engineeri
 
 ---
 
-## Architecture
+## 📸 Screenshots
+![Service Monitor](assets/screenshots/0_service_monitor.png)
+(assets/screenshots/1_service_monitor.png)
+(assets/screenshots/2_service_monitor.png)
+(assets/screenshots/3_service_monitor.png)
+
+![Log Analyzer](assets/screenshots/4_log_analyzer.png)
+(assets/screenshots/5_log_analyzer.png)
+
+![Incidents](assets/screenshots/6_incidents.png)
+
+![Automation](assets/screenshots/7_automation.png)
+
+![System Health](assets/screenshots/8_system_health.png)
+
+---
+
+## 🏗️ Architecture
 
 ```
 Browser (HTML / CSS / JS)
@@ -66,7 +83,7 @@ SQLite Database (cloudeye.db)
 
 ---
 
-## Tech Stack
+## 🛠️ Tech Stack
 
 | Layer | Technology |
 |---|---|
@@ -81,9 +98,27 @@ SQLite Database (cloudeye.db)
 
 ---
 
-## Getting Started
+## 🚀 Getting Started
 
-### Local Development
+### 🐳 Docker (Recommended)
+ 
+```bash
+# Build and start
+docker compose up -d --build
+ 
+# View logs
+docker compose logs -f
+ 
+# Stop
+docker compose down
+```
+
+Open **http://localhost:8000** in your browser.
+ 
+> **Note:** The logs will show `Uvicorn running on http://0.0.0.0:8000` — this is normal. Always use `http://localhost:8000` to access the app.  
+> Your data persists across restarts via a Docker volume (`cloudeye_data`). Use `docker compose down -v` only when you want a completely fresh start.
+
+### 🐍 Local Development
 
 ```bash
 # Clone the repository
@@ -105,34 +140,11 @@ pip install -r requirements.txt
 uvicorn main:app --reload
 ```
 
-Open `http://localhost:8000` in your browser.
-
-> **Note:** When the container starts, uvicorn will print
-> `Uvicorn running on http://0.0.0.0:8000` in the logs.
-> This is normal — `0.0.0.0` is not a browser address.
-> Always use `http://localhost:8000` to access the app.
-
-> The SQLite database is stored in a Docker volume (`cloudeye_data`) so your data
-> persists across container restarts and rebuilds.
-
-### Docker
-
-```bash
-# Build and run with Docker Compose
-docker-compose up --build
-
-# Run in background
-docker-compose up -d --build
-
-# Stop
-docker-compose down
-```
-
-Open `http://localhost:8000` in your browser.
+Open **http://localhost:8000** in your browser.
 
 ---
 
-## Project Structure
+## 📁 Project Structure
 
 ```
 cloudeye/
@@ -153,7 +165,7 @@ cloudeye/
 
 ---
 
-## API Reference
+## 📡 API Reference
 
 The full interactive API documentation is available at `http://localhost:8000/docs` when the server is running (FastAPI auto-generated Swagger UI).
 
@@ -175,7 +187,7 @@ The full interactive API documentation is available at `http://localhost:8000/do
 
 ---
 
-## Development Phases
+## 📅 Development Phases
 
 | Phase | Feature | Status |
 |---|---|---|
@@ -187,6 +199,6 @@ The full interactive API documentation is available at `http://localhost:8000/do
 
 ---
 
-## License
+## 📄 License
 
 This project is licensed under the [MIT License](LICENSE).
