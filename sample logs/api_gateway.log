@@ -1,0 +1,51 @@
+2026-01-11 00:00:00,441 INFO gateway.startup: API Gateway starting — version 3.1.2
+2026-01-11 00:00:00,880 INFO gateway.upstream: Upstream registered name=auth-service url=http://auth-svc:8080 weight=100
+2026-01-11 00:00:00,881 INFO gateway.upstream: Upstream registered name=user-service url=http://user-svc:8081 weight=100
+2026-01-11 00:00:00,882 INFO gateway.upstream: Upstream registered name=payment-service url=http://payment-svc:8082 weight=100
+2026-01-11 00:00:00,883 INFO gateway.upstream: Upstream registered name=inventory-service url=http://inventory-svc:8083 weight=100
+2026-01-11 00:00:01,003 INFO gateway.startup: All upstreams healthy — gateway ready
+2026-01-11 00:01:12,441 INFO gateway.request: GET /api/v1/users/me status=200 latency=34ms upstream=user-service
+2026-01-11 00:01:33,881 INFO gateway.request: POST /api/v1/auth/login status=200 latency=88ms upstream=auth-service
+2026-01-11 00:02:10,003 INFO gateway.request: GET /api/v1/products status=200 latency=41ms upstream=inventory-service
+2026-01-11 00:05:00,001 INFO gateway.stats: rps=12 p50=38ms p95=91ms p99=144ms error_rate=0.0%
+2026-01-11 00:30:00,001 INFO gateway.stats: rps=18 p50=42ms p95=98ms p99=167ms error_rate=0.1%
+2026-01-11 01:00:00,001 INFO gateway.stats: rps=9 p50=35ms p95=82ms p99=130ms error_rate=0.0%
+2026-01-11 02:00:00,001 INFO gateway.stats: rps=5 p50=31ms p95=74ms p99=118ms error_rate=0.0%
+2026-01-11 03:00:00,001 INFO gateway.stats: rps=4 p50=29ms p95=70ms p99=112ms error_rate=0.0%
+2026-01-11 04:00:00,001 INFO gateway.stats: rps=6 p50=33ms p95=78ms p99=124ms error_rate=0.0%
+2026-01-11 05:00:00,001 INFO gateway.stats: rps=14 p50=39ms p95=92ms p99=149ms error_rate=0.0%
+2026-01-11 06:00:00,001 INFO gateway.stats: rps=44 p50=45ms p95=112ms p99=198ms error_rate=0.2%
+2026-01-11 07:00:00,001 INFO gateway.stats: rps=88 p50=52ms p95=134ms p99=244ms error_rate=0.4%
+2026-01-11 07:30:00,001 INFO gateway.stats: rps=122 p50=61ms p95=188ms p99=341ms error_rate=0.8%
+2026-01-11 07:45:12,441 WARNING gateway.latency: p99 latency exceeding SLA threshold p99=412ms sla=400ms upstream=user-service
+2026-01-11 07:50:33,003 WARNING gateway.latency: p99 latency exceeding SLA threshold p99=589ms sla=400ms upstream=user-service
+2026-01-11 07:55:00,001 INFO gateway.stats: rps=145 p50=78ms p95=241ms p99=612ms error_rate=2.1%
+2026-01-11 07:55:22,881 ERROR gateway.upstream: Upstream health check failed name=user-service url=http://user-svc:8081 status=503
+2026-01-11 07:55:23,003 ERROR gateway.upstream: Upstream health check failed name=user-service url=http://user-svc:8081 status=503
+2026-01-11 07:55:23,441 ERROR gateway.upstream: Upstream health check failed name=user-service url=http://user-svc:8081 status=503
+2026-01-11 07:55:23,442 WARNING gateway.circuit: Circuit breaker OPEN for upstream=user-service failures=3 threshold=3
+2026-01-11 07:55:23,550 WARNING gateway.routing: Requests to user-service being rejected — circuit breaker open
+2026-01-11 07:55:44,112 ERROR gateway.request: GET /api/v1/users/me status=503 latency=2ms upstream=user-service reason=circuit_breaker_open
+2026-01-11 07:55:44,220 ERROR gateway.request: GET /api/v1/users/profile status=503 latency=2ms upstream=user-service reason=circuit_breaker_open
+2026-01-11 07:55:44,331 ERROR gateway.request: PUT /api/v1/users/preferences status=503 latency=1ms upstream=user-service reason=circuit_breaker_open
+2026-01-11 08:00:00,001 INFO gateway.stats: rps=138 p50=55ms p95=144ms p99=288ms error_rate=18.4%
+2026-01-11 08:00:30,441 INFO gateway.circuit: Circuit breaker HALF-OPEN for upstream=user-service — probing
+2026-01-11 08:00:31,003 INFO gateway.upstream: Upstream health check passed name=user-service status=200 latency=44ms
+2026-01-11 08:00:31,110 INFO gateway.circuit: Circuit breaker CLOSED for upstream=user-service — service recovered
+2026-01-11 08:01:00,001 INFO gateway.stats: rps=141 p50=48ms p95=121ms p99=201ms error_rate=0.3%
+2026-01-11 08:30:00,001 INFO gateway.stats: rps=155 p50=44ms p95=108ms p99=188ms error_rate=0.1%
+2026-01-11 09:00:00,001 INFO gateway.stats: rps=161 p50=43ms p95=104ms p99=177ms error_rate=0.1%
+2026-01-11 09:30:22,112 ERROR gateway.upstream: Connection refused upstream=inventory-service url=http://inventory-svc:8083 attempt=1
+2026-01-11 09:30:22,441 ERROR gateway.upstream: Connection refused upstream=inventory-service url=http://inventory-svc:8083 attempt=2
+2026-01-11 09:30:22,880 ERROR gateway.upstream: Connection refused upstream=inventory-service url=http://inventory-svc:8083 attempt=3
+2026-01-11 09:30:22,881 CRITICAL gateway.upstream: Upstream inventory-service is DOWN — circuit breaker OPEN
+2026-01-11 09:30:23,003 WARNING gateway.routing: Falling back to cached inventory data — staleness risk
+2026-01-11 09:35:00,001 INFO gateway.upstream: inventory-service pod restarted and healthy — circuit breaker CLOSED
+2026-01-11 09:35:01,220 INFO gateway.routing: Live inventory-service restored — cache fallback disabled
+2026-01-11 10:00:00,001 INFO gateway.stats: rps=158 p50=41ms p95=99ms p99=168ms error_rate=0.1%
+2026-01-11 10:30:00,001 INFO gateway.stats: rps=144 p50=39ms p95=94ms p99=159ms error_rate=0.0%
+2026-01-11 11:00:00,001 INFO gateway.stats: rps=133 p50=38ms p95=91ms p99=151ms error_rate=0.0%
+2026-01-11 11:30:00,001 INFO gateway.stats: rps=128 p50=37ms p95=88ms p99=144ms error_rate=0.0%
+2026-01-11 11:55:44,441 WARNING gateway.ssl: TLS 1.0 connection attempt detected from ip=203.0.113.88 — rejected per security policy
+2026-01-11 11:55:44,442 WARNING gateway.ssl: TLS 1.0 connection attempt detected from ip=203.0.113.88 — rejected per security policy
+2026-01-11 12:00:00,001 INFO gateway.stats: rps=121 p50=36ms p95=86ms p99=141ms error_rate=0.0%

@@ -1,0 +1,16 @@
+services:
+  cloudeye:
+    build: .
+    container_name: cloudeye
+    ports:
+      - "8000:8000"
+    volumes:
+      # Persist the SQLite database outside the container
+      # so data survives restarts and rebuilds
+      - cloudeye_data:/app/data
+    environment:
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped
+
+volumes:
+  cloudeye_data:

@@ -1,0 +1,54 @@
+2026-03-30 00:00:00,112 INFO worker.startup: Background job processor starting — version 1.6.0
+2026-03-30 00:00:00,441 INFO worker.queue: Connected to RabbitMQ at mq-01:5672
+2026-03-30 00:00:00,880 INFO worker.queue: Subscribed to queues: email_notifications, report_generation, data_export, image_processing
+2026-03-30 00:00:01,003 INFO worker.startup: Worker pool initialized threads=8
+2026-03-30 00:01:12,441 INFO worker.job: Job started type=email_notification job_id=job-00441 user=u_10234
+2026-03-30 00:01:13,003 INFO worker.job: Job completed type=email_notification job_id=job-00441 duration=561ms
+2026-03-30 00:05:22,881 INFO worker.job: Job started type=report_generation job_id=job-00442 report=monthly_sales
+2026-03-30 00:05:55,441 INFO worker.job: Job completed type=report_generation job_id=job-00442 duration=32540ms rows=142881
+2026-03-30 00:10:00,001 INFO worker.stats: jobs_processed=12 jobs_failed=0 queue_depth=3 memory=312MB
+2026-03-30 00:30:00,001 INFO worker.stats: jobs_processed=28 jobs_failed=0 queue_depth=1 memory=318MB
+2026-03-30 01:00:00,001 INFO worker.stats: jobs_processed=41 jobs_failed=0 queue_depth=0 memory=324MB
+2026-03-30 01:30:00,001 INFO worker.stats: jobs_processed=52 jobs_failed=1 queue_depth=2 memory=331MB
+2026-03-30 01:30:11,220 WARNING worker.memory: Memory usage growing steadily — possible leak detected current=331MB baseline=312MB growth_rate=1.2MB/hr
+2026-03-30 02:00:00,001 INFO worker.stats: jobs_processed=68 jobs_failed=1 queue_depth=0 memory=339MB
+2026-03-30 02:14,003 INFO worker.job: Job started type=data_export job_id=job-00498 user=u_55210 format=csv rows_requested=500000
+2026-03-30 02:14,441 WARNING worker.job: Large export job detected job_id=job-00498 rows=500000 — allocating extended memory
+2026-03-30 02:19,003 INFO worker.job: Job completed type=data_export job_id=job-00498 duration=304s file_size=218MB
+2026-03-30 02:30:00,001 INFO worker.stats: jobs_processed=74 jobs_failed=1 queue_depth=0 memory=358MB
+2026-03-30 03:00:00,001 INFO worker.stats: jobs_processed=81 jobs_failed=1 queue_depth=1 memory=365MB
+2026-03-30 03:30,881 INFO worker.job: Job started type=image_processing job_id=job-00521 images=142
+2026-03-30 03:31,003 ERROR worker.job: Job failed type=image_processing job_id=job-00521 error=out of memory attempting resize of 8192x8192 image
+2026-03-30 03:31,110 WARNING worker.job: Retrying job_id=job-00521 attempt=2
+2026-03-30 03:31,441 ERROR worker.job: Job failed type=image_processing job_id=job-00521 error=out of memory attempting resize of 8192x8192 image attempt=2
+2026-03-30 03:31,550 WARNING worker.job: Retrying job_id=job-00521 attempt=3
+2026-03-30 03:32,003 ERROR worker.job: Job failed type=image_processing job_id=job-00521 error=out of memory attempting resize of 8192x8192 image attempt=3
+2026-03-30 03:32,110 ERROR worker.dlq: Job moved to dead letter queue job_id=job-00521 type=image_processing reason=max_retries_exceeded
+2026-03-30 04:00:00,001 INFO worker.stats: jobs_processed=94 jobs_failed=4 queue_depth=0 memory=374MB
+2026-03-30 04:00,112 WARNING worker.memory: Memory usage growing steadily — possible leak detected current=374MB baseline=312MB growth_rate=2.9MB/hr
+2026-03-30 05:00:00,001 INFO worker.stats: jobs_processed=108 jobs_failed=4 queue_depth=2 memory=388MB
+2026-03-30 06:00:00,001 INFO worker.stats: jobs_processed=124 jobs_failed=4 queue_depth=5 memory=401MB
+2026-03-30 06:30,441 ERROR worker.queue: RabbitMQ connection lost host=mq-01:5672 reason=heartbeat_timeout
+2026-03-30 06:30,442 ERROR worker.queue: RabbitMQ connection lost host=mq-01:5672 reason=heartbeat_timeout
+2026-03-30 06:30,550 WARNING worker.queue: Attempting reconnect to RabbitMQ attempt=1
+2026-03-30 06:30,881 WARNING worker.queue: Attempting reconnect to RabbitMQ attempt=2
+2026-03-30 06:31,003 INFO worker.queue: RabbitMQ reconnected host=mq-01:5672 — resuming job processing
+2026-03-30 07:00:00,001 INFO worker.stats: jobs_processed=141 jobs_failed=4 queue_depth=8 memory=416MB
+2026-03-30 07:30:00,001 INFO worker.stats: jobs_processed=162 jobs_failed=4 queue_depth=14 memory=428MB
+2026-03-30 08:00:00,001 INFO worker.stats: jobs_processed=188 jobs_failed=4 queue_depth=22 memory=441MB
+2026-03-30 08:00,112 WARNING worker.queue: Queue depth increasing rapidly queue=email_notifications depth=22 threshold=20
+2026-03-30 08:00,220 INFO worker.scaling: Auto-scaling triggered — adding 4 additional worker threads total=12
+2026-03-30 08:30:00,001 INFO worker.stats: jobs_processed=241 jobs_failed=4 queue_depth=6 memory=458MB
+2026-03-30 09:00:00,001 INFO worker.stats: jobs_processed=288 jobs_failed=5 queue_depth=2 memory=471MB
+2026-03-30 09:00,441 CRITICAL worker.memory: Memory usage critical current=471MB limit=512MB — worker restart recommended
+2026-03-30 09:01,003 WARNING worker.memory: Initiating graceful worker restart to reclaim memory
+2026-03-30 09:01,441 INFO worker.queue: Draining active jobs before restart active_jobs=3
+2026-03-30 09:02,003 INFO worker.startup: Worker restarting — handing off jobs to peer workers
+2026-03-30 09:02,441 INFO worker.startup: Worker restarted successfully memory=314MB
+2026-03-30 10:00:00,001 INFO worker.stats: jobs_processed=44 jobs_failed=0 queue_depth=1 memory=322MB
+2026-03-30 11:00:00,001 INFO worker.stats: jobs_processed=88 jobs_failed=0 queue_depth=0 memory=331MB
+2026-03-30 11:30,881 ERROR worker.smtp: Email delivery failed job_id=job-00814 smtp_host=smtp.acme.com reason=connection refused recipient=alerts@acme.com
+2026-03-30 11:30,882 ERROR worker.smtp: Email delivery failed job_id=job-00815 smtp_host=smtp.acme.com reason=connection refused recipient=reports@acme.com
+2026-03-30 11:31,003 WARNING worker.smtp: SMTP server unreachable — queuing email jobs for retry queue_depth=8
+2026-03-30 11:35,441 INFO worker.smtp: SMTP connection restored — processing queued emails
+2026-03-30 12:00:00,001 INFO worker.stats: jobs_processed=122 jobs_failed=2 queue_depth=0 memory=338MB
