@@ -48,18 +48,24 @@ Built as a portfolio project demonstrating real-world DevOps and cloud engineeri
 ---
 
 ## 📸 Screenshots
-![Service Monitor](assets/screenshots/0_service_monitor.png)
-(assets/screenshots/1_service_monitor.png)
-(assets/screenshots/2_service_monitor.png)
-(assets/screenshots/3_service_monitor.png)
 
+### Service Monitor
+![Service Monitor](assets/screenshots/0_service_monitor.png)
+![Service Monitor](assets/screenshots/1_service_monitor.png)
+![Service Monitor](assets/screenshots/2_service_monitor.png)
+![Service Monitor](assets/screenshots/3_service_monitor.png)
+
+### Log Analyzer
 ![Log Analyzer](assets/screenshots/4_log_analyzer.png)
 (assets/screenshots/5_log_analyzer.png)
 
+### Incidents
 ![Incidents](assets/screenshots/6_incidents.png)
 
+### Automation
 ![Automation](assets/screenshots/7_automation.png)
 
+### System Health
 ![System Health](assets/screenshots/8_system_health.png)
 
 ---
